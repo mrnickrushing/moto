@@ -9,19 +9,24 @@ module.exports = {
     extend: {
       fontFamily: {
         anton: ['Anton', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
-        sans: ['Manrope', 'sans-serif'],
+        display: ['Anton', 'sans-serif'],
+        brush: ['"Permanent Marker"', 'cursive'],
+        mono: ['"Barlow Condensed"', 'sans-serif'],
+        condensed: ['"Barlow Condensed"', 'sans-serif'],
+        sans: ['Barlow', 'sans-serif'],
       },
       colors: {
         brand: {
-          yellow: '#eab308',
-          pink: '#ec4899',
-          cyan: '#06b6d4',
+          yellow: '#e2d64a',
+          pink: '#d81f63',
+          cyan: '#10aeb4',
+          orange: '#f26a21',
+          cream: '#e7de9d',
         },
         ink: {
-          950: '#09090b',
-          900: '#18181b',
-          800: '#27272a',
+          950: '#080a09',
+          900: '#111310',
+          800: '#2a2d28',
         },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
