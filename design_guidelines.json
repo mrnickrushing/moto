@@ -1,0 +1,159 @@
+{
+  "project_name": "MOTO Mayhem Rodeo",
+  "theme": "dark",
+  "design_philosophy": "High energy, dirt, adrenaline. Grunge street-poster aesthetic meets modern digital kinetic typography. Break the grid intentionally, use massive contrast, and tell a story of chaos structured by discipline.",
+  "typography": {
+    "fonts": [
+      {
+        "role": "Primary Headings (H1, H2)",
+        "family": "Anton",
+        "fallback": "sans-serif",
+        "weight": "400",
+        "usage": "Massive sizes (text-5xl to text-7xl+). MUST use uppercase and tracking-tighter. Use for Hero, Section Titles, and Kinetic Marquee."
+      },
+      {
+        "role": "Numbers, Data, Subheadings",
+        "family": "JetBrains Mono",
+        "fallback": "monospace",
+        "weight": "800",
+        "usage": "Countdown timer, rider classes (50cc, 110cc), payout amounts, schedule times. Adds mechanical precision."
+      },
+      {
+        "role": "Body Text",
+        "family": "Manrope",
+        "fallback": "sans-serif",
+        "weight": "400, 700",
+        "usage": "Paragraphs, forms, registration details. Highly legible to offset chaotic headings."
+      }
+    ],
+    "rules": [
+      "No Inter or generic sans for headings. AI defaults are forbidden.",
+      "Headlines > 32px MUST use tracking-tight or tighter.",
+      "Max hero size: clamp(3rem, 8vw, 6rem). No text-9xl jumps.",
+      "DO NOT center align typography globally. Left-align text for tension and readability."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": "#09090b",
+      "surface": "#18181b",
+      "border": "#27272a",
+      "text_primary": "#fafafa",
+      "text_secondary": "#a1a1aa",
+      "brand_yellow": "#eab308",
+      "brand_pink": "#ec4899",
+      "brand_cyan": "#06b6d4"
+    },
+    "rules": [
+      "Backgrounds must be predominantly solid black or darkest zinc.",
+      "Use Yellow, Pink, and Cyan purely as high-voltage accents (borders, text highlights, buttons).",
+      "NEVER use generic full-screen gradients. Use solid color blocks or raw textures.",
+      "Tint greys dynamically; never pure #808080."
+    ]
+  },
+  "visual_enhancers": {
+    "textures": [
+      "Distressed noise/grain overlay on the entire body (opacity-20, mix-blend-overlay).",
+      "Checkered flag motifs used as thick border-bottoms or subtle container backgrounds (black/white or tinted cyan)."
+    ],
+    "shapes": "Sharp angles, aggressive diagonals (skew-y-3 on accents), and zero border-radius (`rounded-none`). No soft neumorphic shadows."
+  },
+  "layouts": {
+    "general": "Asymmetric, overlapping elements. Use the 'Tetris' grid layout with generous spacing.",
+    "hero": {
+      "style": "Kinetic overlay",
+      "description": "Full height (min-h-screen). Background image of dirt bike jump with heavy bg-black/60 overlay. Massive staggered line-by-line text reveal of 'RIDE HARD / CAUSE MAYHEM / HAVE FUN'. Text overlaps."
+    },
+    "manifesto_chapters": {
+      "style": "Staggered Editorial",
+      "description": "Large outline numbers (1, 2, 3) in bg using text-transparent and stroke (text-border). Content heavily padded (p-8 or p-12), broken from the standard column grid."
+    },
+    "classes_grid": {
+      "style": "High Density Brutalism",
+      "description": "Dense, thick 2px solid borders around class cards. Bright yellow/pink hover states that invert the card color."
+    },
+    "admin_dashboard": {
+      "style": "High Density Technical Grid",
+      "description": "For managing registrations. Sharp edges, 1px cyan borders, JetBrains Mono for data tables. Deep black backgrounds with yellow accents for primary actions. Strict cardless grid."
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "Brutalist Block",
+      "classes": "px-8 py-4 bg-brand_yellow text-black font-anton uppercase tracking-widest text-xl rounded-none border-2 border-transparent hover:bg-black hover:text-brand_yellow hover:border-brand_yellow hover:-translate-y-1 transition-transform transition-colors duration-200 shadow-[4px_4px_0px_#ec4899] hover:shadow-[6px_6px_0px_#ec4899]"
+    },
+    "cards": {
+      "style": "Raw Edges",
+      "classes": "bg-surface border-2 border-zinc-800 p-8 rounded-none relative overflow-hidden group hover:border-brand_cyan transition-colors"
+    },
+    "header": {
+      "style": "Glass + Hard Edge",
+      "classes": "fixed top-0 w-full z-50 backdrop-blur-xl bg-black/70 border-b-2 border-zinc-800"
+    }
+  },
+  "motion": {
+    "scroll": "Lenis smooth scrolling is MANDATORY for momentum.",
+    "reveal": "Framer Motion line-by-line text masks (`overflow-hidden`, child `motion.div` translates y from 100% to 0%).",
+    "marquee": "React Fast Marquee for 'EDITORIAL RIBBON' - massive outline text running in the background behind the schedule section."
+  },
+  "accessibility": {
+    "contrast": "Ensure text over images has sufficient contrast. Hero requires bg-black/60.",
+    "focus": "focus:ring-2 focus:ring-brand_pink focus:outline-none focus:bg-brand_yellow focus:text-black",
+    "motion": "Respect prefers-reduced-motion. Provide fallback states for heavy animations.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute."
+  },
+  "media": {
+    "images": [
+      {
+        "category": "hero",
+        "url": "https://images.unsplash.com/photo-1637431155699-8b379d496434?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHwzfHxtb3RvY3Jvc3MlMjByYWNlJTIwZGlydCUyMGp1bXB8ZW58MHx8fHwxNzg0NTY3MjY4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Person jumping a dirt bike in the air. Use as full-screen hero background."
+      },
+      {
+        "category": "event_barrels_showcase",
+        "url": "https://images.pexels.com/photos/144113/pexels-photo-144113.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Exciting motocross jump. Use for event showcase (Barrels/Poles)."
+      },
+      {
+        "category": "kids_classes",
+        "url": "https://images.pexels.com/photos/33639182/pexels-photo-33639182.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Young child riding a dirt bike. Use for 50cc/65cc class details layout."
+      },
+      {
+        "category": "texture_checkered",
+        "url": "https://images.unsplash.com/photo-1703929755159-a1a8835a0536?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjaGVja2VyZWQlMjBmbGFnJTIwcmFjaW5nJTIwdGV4dHVyZXxlbnwwfHx8fDE3ODQ1NjcyNjh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Checkered fabric. Use as background texture in schedule, sponsor wall, or footer."
+      }
+    ]
+  },
+  "libraries": {
+    "mandatory": [
+      "framer-motion",
+      "lenis",
+      "lucide-react",
+      "react-fast-marquee",
+      "sonner"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "You have .js and .jsx files, not .tsx. Do not use TypeScript.",
+    "Install custom fonts using standard @import or link tags (Anton, JetBrains Mono, Manrope).",
+    "Implement Lenis smooth scrolling in a top-level layout wrapper.",
+    "Construct the Hero section with Framer Motion text reveals. Ensure the background image has a dark overlay (bg-black/60) so text is legible.",
+    "Build the Countdown Timer to July 25, 2026 using JetBrains Mono, with large numbers and pink/cyan accents.",
+    "For the Schedule/Classes grid, use sharp square borders, no border radius, and high contrast hover effects.",
+    "Create a Marquee section using react-fast-marquee. Make the text massive, outlined, and uppercase.",
+    "Integrate Shadcn forms for the Rider Registration flow and Admin Dashboard, customizing the UI to match the brutalist aesthetic (remove rounded corners, use thick borders).",
+    "Ensure all interactive elements have data-testid attributes for testing.",
+    "Do not use generic text. Use 'MOTO Mayhem Rodeo', 'July 25, 2026', 'Ed Hughes Memorial Arena', 'Gold\\'s Bakery' throughout the design."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not converge toward generic layouts. Avoid standard Vercel-look borders and soft shadows.",
+    "Create depth through sharp layered elements, not blurs. Use z-index hierarchy.",
+    "Never apply universal transition (transition: all). Use specific properties.",
+    "Do not center align app text globally. Ensure reading flow is natural and tense.",
+    "Use 2-3x more spacing than usual. Let sections breathe heavily.",
+    "Never use AI emoji placeholders for icons.",
+    "Use solid rectangular buttons with offset brutalist shadows and dynamic interactions."
+  ]
+}
