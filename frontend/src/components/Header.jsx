@@ -27,27 +27,50 @@ export default function Header() {
   return (
     <header
       data-testid="site-header"
-      className={`fixed top-0 left-0 w-full z-50 border-b-2 transition-colors duration-300 ${
-        scrolled ? "bg-black/85 backdrop-blur-xl border-ink-800" : "bg-transparent border-transparent"
+      className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${
+        scrolled ? "bg-ink-950/95 backdrop-blur-md" : "bg-ink-950/70"
       }`}
     >
-      <div className="max-w-[1400px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
-        <Link to="/" data-testid="logo-link" className="flex items-center gap-3 group">
-          <span className="font-display text-2xl sm:text-3xl uppercase leading-none">
-            <span className="text-brand-yellow">MOTO</span>
-            <span className="text-brand-pink">MAYHEM</span>
+      <div className="h-7 overflow-hidden bg-brand-yellow text-black border-b-2 border-black font-condensed font-extrabold uppercase tracking-[0.14em] text-[11px] sm:text-xs">
+        <div className="ticker-track flex h-full items-center whitespace-nowrap" aria-hidden="true">
+          {[0, 1].map((copy) => (
+            <span key={copy} className="flex items-center">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <span key={i} className="flex items-center">
+                  <span className="px-4">Pre-registration closes {EVENT.regDeadline}</span>
+                  <span>◆</span>
+                  <span className="px-4">Ione, California</span>
+                  <span>◆</span>
+                  <span className="px-4">Check-in 9 AM</span>
+                  <span>◆</span>
+                  <span className="px-4">Ride at Noon</span>
+                  <span className="px-4 text-brand-pink">⚡</span>
+                </span>
+              ))}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-b-2 border-brand-pink/80">
+        <div className="max-w-[1500px] mx-auto px-5 sm:px-8 h-[76px] flex items-center justify-between">
+        <Link to="/" data-testid="logo-link" className="group -rotate-1 hover:rotate-0 transition-transform">
+          <span className="font-display italic text-2xl sm:text-[2rem] uppercase leading-none hero-title">
+            <span className="text-brand-yellow">MOTO</span>{" "}
+            <span className="text-white">MAYHEM</span>{" "}
+            <span className="text-brand-cyan hidden sm:inline">RODEO</span>
           </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-9">
+        <nav className="hidden lg:flex items-center gap-1 border border-zinc-600/80 px-2 py-1 clip-corner bg-black/45">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
               data-testid={`nav-${n.label.toLowerCase()}`}
               className={({ isActive }) =>
-                `font-mono text-xs uppercase tracking-[0.2em] transition-colors hover:text-brand-yellow ${
-                  isActive ? "text-brand-yellow" : "text-zinc-300"
+                `font-condensed font-bold text-sm uppercase tracking-[0.14em] px-4 py-2 transition-colors hover:text-brand-yellow ${
+                  isActive ? "text-brand-cyan" : "text-zinc-100"
                 }`
               }
             >
@@ -57,36 +80,37 @@ export default function Header() {
           <Link
             to="/register"
             data-testid="nav-register-cta"
-            className="font-anton uppercase tracking-widest text-sm px-6 py-3 bg-brand-yellow text-black border-2 border-transparent hover:bg-black hover:text-brand-yellow hover:border-brand-yellow transition-colors duration-200 shadow-[4px_4px_0px_#ec4899] hover:shadow-[6px_6px_0px_#ec4899]"
+            className="ml-6 font-anton uppercase tracking-widest text-base px-7 py-3.5 bg-brand-yellow text-black border-2 border-brand-yellow hover:bg-black hover:text-brand-yellow transition-colors duration-200 poster-shadow-pink clip-corner"
           >
-            Register
+            Register Now
           </Link>
         </nav>
 
         <button
           data-testid="mobile-menu-toggle"
-          className="lg:hidden text-white p-2"
+          className="lg:hidden text-white p-2 border-2 border-zinc-700 hover:border-brand-cyan transition-colors"
           onClick={() => setOpen((o) => !o)}
           aria-label="Toggle menu"
         >
           {open ? <X size={26} /> : <Menu size={26} />}
         </button>
+        </div>
       </div>
 
       {open && (
-        <div data-testid="mobile-menu" className="lg:hidden bg-black border-t-2 border-ink-800 px-5 py-6 flex flex-col gap-5">
+        <div data-testid="mobile-menu" className="lg:hidden bg-ink-950 border-b-4 border-brand-cyan px-5 py-7 flex flex-col gap-5 poster-grid">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
-              className="font-anton uppercase text-2xl tracking-wide text-zinc-200"
+              className="font-anton uppercase text-3xl tracking-wide text-zinc-100 hover:text-brand-yellow"
             >
               {n.label}
             </NavLink>
           ))}
           <Link
             to="/register"
-            className="font-anton uppercase tracking-widest text-lg px-6 py-4 bg-brand-yellow text-black text-center shadow-[4px_4px_0px_#ec4899]"
+            className="font-anton uppercase tracking-widest text-xl px-6 py-4 bg-brand-yellow text-black text-center poster-shadow-pink clip-corner"
           >
             Register — ${EVENT.price}
           </Link>
