@@ -1,0 +1,17 @@
+**/node_modules
+**/build
+**/dist
+**/.git
+**/__pycache__
+**/*.pyc
+**/.venv
+**/venv
+**/.env
+**/.env.*
+frontend/.next
+test_reports
+tests
+backend/tests
+memory
+scripts
+*.md

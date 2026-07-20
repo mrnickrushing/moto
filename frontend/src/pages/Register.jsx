@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { CreditCard, Banknote, ArrowRight, Check } from "lucide-react";
+import { Banknote, ArrowRight, Check } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import api, { formatApiErrorDetail } from "@/lib/api";
 import { CLASSES, TSHIRT_SIZES, EVENT, accentClass } from "@/data/rodeo";
@@ -21,7 +21,6 @@ const empty = {
 export default function Register() {
   const [form, setForm] = useState(empty);
   const [selected, setSelected] = useState([]);
-  const [method, setMethod] = useState("stripe");
   const [loading, setLoading] = useState(false);
 
   const total = selected.length * EVENT.price;
@@ -50,22 +49,14 @@ export default function Register() {
           const c = CLASSES.find((x) => x.id === id);
           return `${c.cc} ${c.label} (${c.age})`;
         }),
-        payment_method: method,
+        payment_method: "venmo_cash",
       };
-      const { data } = await api.post("/registrations", payload);
+      await api.post("/registrations", payload);
 
-      if (method === "stripe") {
-        const res = await api.post("/payments/checkout", {
-          registration_id: data.id,
-          origin_url: window.location.origin,
-        });
-        window.location.href = res.data.checkout_url;
-      } else {
-        toast.success("Registration received! Pay via Venmo or cash at check-in.");
-        setForm(empty);
-        setSelected([]);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      toast.success("Spot reserved! Pay via Venmo or cash at check-in.");
+      setForm(empty);
+      setSelected([]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       toast.error(formatApiErrorDetail(err.response?.data?.detail) || err.message);
     } finally {
@@ -186,27 +177,14 @@ export default function Register() {
             {/* payment method */}
             <div>
               <h2 className="font-display uppercase text-3xl mb-6">4. Payment</h2>
-              <div className="grid sm:grid-cols-2 gap-px">
-                <button
-                  type="button"
-                  data-testid="pay-stripe"
-                  onClick={() => setMethod("stripe")}
-                  className={`text-left border-2 p-6 transition-colors ${method === "stripe" ? "border-brand-yellow bg-brand-yellow/10" : "border-ink-800 bg-black hover:border-brand-cyan"}`}
-                >
-                  <CreditCard className="text-brand-cyan mb-3" size={28} />
-                  <p className="font-anton uppercase text-xl leading-none">Pay Online</p>
-                  <p className="font-mono text-xs text-zinc-500 mt-2">Secure card checkout via Stripe</p>
-                </button>
-                <button
-                  type="button"
-                  data-testid="pay-venmo"
-                  onClick={() => setMethod("venmo_cash")}
-                  className={`text-left border-2 p-6 transition-colors ${method === "venmo_cash" ? "border-brand-yellow bg-brand-yellow/10" : "border-ink-800 bg-black hover:border-brand-cyan"}`}
-                >
-                  <Banknote className="text-brand-pink mb-3" size={28} />
-                  <p className="font-anton uppercase text-xl leading-none">Venmo / Cash</p>
-                  <p className="font-mono text-xs text-zinc-500 mt-2">Reserve now, pay at check-in</p>
-                </button>
+              <div className="border-2 border-brand-yellow bg-brand-yellow/5 p-6" data-testid="pay-venmo-cash">
+                <Banknote className="text-brand-pink mb-3" size={28} />
+                <p className="font-anton uppercase text-xl leading-none">Venmo / Cash at Check-In</p>
+                <p className="font-mono text-sm text-zinc-400 mt-3 leading-relaxed">
+                  Reserve your spot now — no online payment required. Bring your{" "}
+                  <span className="text-brand-yellow font-bold">${EVENT.price} per entry</span> as
+                  Venmo or cash when you check in on event day. We'll confirm your entries by email.
+                </p>
               </div>
             </div>
           </div>
@@ -240,7 +218,7 @@ export default function Register() {
                 disabled={loading}
                 className="w-full mt-8 inline-flex items-center justify-center gap-3 font-anton uppercase tracking-widest text-lg px-6 py-4 bg-brand-yellow text-black hover:bg-brand-cyan transition-colors shadow-[5px_5px_0px_#ec4899] disabled:opacity-50"
               >
-                {loading ? "Processing…" : method === "stripe" ? "Pay & Register" : "Reserve Spot"}
+                {loading ? "Processing…" : "Reserve Spot"}
                 <ArrowRight size={20} />
               </button>
               <p className="font-mono text-[10px] text-zinc-600 mt-4 text-center uppercase tracking-widest">
