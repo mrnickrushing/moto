@@ -404,3 +404,31 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+# ----------------------------------------------------------------------------
+# Static frontend (single-origin deploy: FastAPI serves the built React app)
+# ----------------------------------------------------------------------------
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+
+_FRONTEND_BUILD = Path(
+    os.environ.get("FRONTEND_BUILD_DIR", ROOT_DIR.parent / "frontend" / "build")
+)
+
+if _FRONTEND_BUILD.is_dir():
+    _static_dir = _FRONTEND_BUILD / "static"
+    if _static_dir.is_dir():
+        app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # /api/* is handled by the router above; anything else falls back to the SPA.
+        if full_path.startswith("api"):
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        candidate = _FRONTEND_BUILD / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(str(candidate))
+        return FileResponse(str(_FRONTEND_BUILD / "index.html"))
+else:
+    logger.warning("Frontend build not found at %s; serving API only.", _FRONTEND_BUILD)
