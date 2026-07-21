@@ -13,7 +13,15 @@ import stripe
 from bson import ObjectId
 from bson.errors import InvalidId
 from dotenv import load_dotenv
-from fastapi import FastAPI, APIRouter, Request, Response, HTTPException, Depends
+from fastapi import (
+    FastAPI,
+    APIRouter,
+    BackgroundTasks,
+    Request,
+    Response,
+    HTTPException,
+    Depends,
+)
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -41,6 +49,8 @@ from security import (
     csv_values,
     scrub_sentry_event,
 )
+
+import emailer
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -344,6 +354,24 @@ class ContactCreate(ApiModel):
     message: MessageText
 
 
+SponsorTier = Literal[
+    "Champion Buckle Sponsor",
+    "Gold Sponsor",
+    "Silver Sponsor",
+    "Community Partner",
+    "Not sure yet",
+]
+
+
+class SponsorInquiryCreate(ApiModel):
+    business_name: NameText
+    contact_name: NameText
+    email: EmailStr
+    phone: PhoneText
+    tier: SponsorTier = "Not sure yet"
+    message: Annotated[str, StringConstraints(max_length=4000)] = ""
+
+
 class RegistrationUpdate(ApiModel):
     payment_status: Optional[Literal["pending", "paid", "failed", "refunded"]] = None
     notes: Optional[Annotated[str, StringConstraints(max_length=2000)]] = None
@@ -352,6 +380,7 @@ class RegistrationUpdate(ApiModel):
 login_limiter = RateLimiter(RateLimit(5, 300), RateLimit(20, 3600))
 registration_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 contact_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
+sponsor_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 checkout_limiter = RateLimiter(RateLimit(10, 600))
 payment_status_limiter = RateLimiter(RateLimit(60, 60))
 DUMMY_PASSWORD_HASH = hash_password(str(uuid4()))
@@ -407,9 +436,23 @@ async def logout(response: Response):
     return {"message": "logged out"}
 
 
+async def _send_registration_emails(reg: dict) -> None:
+    rider_email = reg.get("email")
+    if rider_email:
+        subject, html = emailer.registration_rider_email(reg)
+        await emailer.send_email(
+            rider_email, subject, html, reply_to=emailer.organizer_email()
+        )
+    subject, html = emailer.registration_organizer_email(reg)
+    await emailer.send_email(
+        emailer.organizer_email(), subject, html, reply_to=rider_email
+    )
+
+
 @api_router.post("/registrations")
 async def create_registration(
     body: RegistrationCreate,
+    background: BackgroundTasks,
     _rate_limit: None = Depends(registration_limiter),
 ):
     entries = len(body.classes)
@@ -426,6 +469,7 @@ async def create_registration(
         }
     )
     result = await db.registrations.insert_one(doc)
+    background.add_task(_send_registration_emails, dict(doc))
     return {
         "id": str(result.inserted_id),
         "entries": entries,
@@ -442,6 +486,32 @@ async def create_contact(
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     await db.contacts.insert_one(doc)
     return {"message": "Message received. Ride hard!"}
+
+
+async def _send_sponsor_emails(inq: dict) -> None:
+    applicant_email = inq.get("email")
+    if applicant_email:
+        subject, html = emailer.sponsor_applicant_email(inq)
+        await emailer.send_email(
+            applicant_email, subject, html, reply_to=emailer.organizer_email()
+        )
+    subject, html = emailer.sponsor_organizer_email(inq)
+    await emailer.send_email(
+        emailer.organizer_email(), subject, html, reply_to=applicant_email
+    )
+
+
+@api_router.post("/sponsor-inquiry")
+async def create_sponsor_inquiry(
+    body: SponsorInquiryCreate,
+    background: BackgroundTasks,
+    _rate_limit: None = Depends(sponsor_limiter),
+):
+    doc = body.model_dump()
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.sponsor_inquiries.insert_one(doc)
+    background.add_task(_send_sponsor_emails, dict(doc))
+    return {"message": "Thanks! We'll be in touch about backing the mayhem."}
 
 
 # ----------------------------------------------------------------------------
@@ -644,6 +714,12 @@ async def admin_list_contacts(admin: dict = Depends(get_current_admin)):
     return [_clean(d) for d in docs]
 
 
+@api_router.get("/admin/sponsor-inquiries")
+async def admin_list_sponsor_inquiries(admin: dict = Depends(get_current_admin)):
+    docs = await db.sponsor_inquiries.find().sort("created_at", -1).to_list(1000)
+    return [_clean(d) for d in docs]
+
+
 # ----------------------------------------------------------------------------
 # Startup
 # ----------------------------------------------------------------------------
@@ -700,6 +776,7 @@ async def on_startup():
     await db.payment_transactions.create_index("session_id", unique=True, sparse=True)
     await db.registrations.create_index("created_at")
     await db.contacts.create_index("created_at")
+    await db.sponsor_inquiries.create_index("created_at")
     await seed_admin()
 
 
