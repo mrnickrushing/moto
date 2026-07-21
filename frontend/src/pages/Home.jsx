@@ -16,6 +16,7 @@ import { Reveal } from "@/components/motion";
 import Kicker from "@/components/Kicker";
 import Countdown from "@/components/Countdown";
 import SectionMarquee from "@/components/SectionMarquee";
+import Memorial from "@/components/Memorial";
 import { EVENT, EVENTS, IMAGES, SPONSORS, FLYERS, accentClass } from "@/data/rodeo";
 
 const RACE_FACTS = [
@@ -213,6 +214,9 @@ export default function Home() {
       </section>
 
       <SectionMarquee items={["Ride Hard", "Cause Mayhem", "Have Fun", "Ione California"]} />
+
+      {/* MEMORIAL */}
+      <Memorial />
 
       {/* MANIFESTO */}
       <section className="py-24 sm:py-32 bg-black relative">

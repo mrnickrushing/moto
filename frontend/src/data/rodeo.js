@@ -147,3 +147,13 @@ export const accentBorder = {
   pink: "hover:border-brand-pink",
   cyan: "hover:border-brand-cyan",
 };
+
+export const MEMORIAL = {
+  name: "Donny Tillery",
+  number: "26s",
+  born: "Jan 26, 1972",
+  died: "Nov 20, 2022",
+  image: "/images/memorial-donny-tillery.jpg",
+  lines: ["Forever in our hearts.", "Forever on the track.", "Never forgotten."],
+  quote: "Some ride for fun, others ride for life. You rode with your soul.",
+};
