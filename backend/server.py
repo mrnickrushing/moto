@@ -739,6 +739,12 @@ if _FRONTEND_BUILD.is_dir():
     if _static_dir.is_dir():
         app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
+    # Public images (e.g. /images/*.jpg from the CRA public/ folder). StaticFiles
+    # resolves and confines paths within the directory, so this is traversal-safe.
+    _images_dir = _FRONTEND_BUILD / "images"
+    if _images_dir.is_dir():
+        app.mount("/images", StaticFiles(directory=str(_images_dir)), name="images")
+
     # Root build artifacts are explicitly mapped so a request path is never used
     # to construct a filesystem path. All bundled assets live under /static.
     _public_build_files = {
