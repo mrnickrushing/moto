@@ -18,6 +18,7 @@ import Contact from "@/pages/Contact";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminPrint from "@/pages/admin/AdminPrint";
 import NotFound from "@/pages/NotFound";
 
 function ScrollToTop() {
@@ -70,6 +71,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/print/:type"
+              element={
+                <ProtectedRoute>
+                  <AdminPrint />
                 </ProtectedRoute>
               }
             />
