@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Banknote, ArrowRight, Check } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import Kicker from "@/components/Kicker";
 import api, { formatApiErrorDetail } from "@/lib/api";
 import { CLASSES, TSHIRT_SIZES, EVENT, accentClass } from "@/data/rodeo";
 
@@ -69,7 +70,7 @@ export default function Register() {
       <section className="pt-36 sm:pt-44 pb-14 bg-black border-b-2 border-ink-800">
         <div className="max-w-[1400px] mx-auto px-5 sm:px-8">
           <Reveal>
-            <p className="font-mono uppercase tracking-[0.3em] text-brand-cyan text-xs mb-4">/ Rider Registration</p>
+            <Kicker color="yellow">Rider Registration</Kicker>
             <h1 className="font-display uppercase text-6xl sm:text-8xl leading-[0.85]">
               Lock Your <span className="text-brand-pink">Spot</span>
             </h1>
@@ -192,7 +193,7 @@ export default function Register() {
           {/* RIGHT: summary */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-28 border-2 border-brand-yellow bg-black p-8" data-testid="order-summary">
-              <p className="font-mono uppercase tracking-[0.2em] text-brand-cyan text-xs mb-6">Entry Summary</p>
+              <Kicker color="cyan" className="mb-6">Entry Summary</Kicker>
               <div className="space-y-3 mb-6 min-h-[60px]">
                 {selected.length === 0 ? (
                   <p className="text-zinc-600 font-mono text-sm">No classes selected yet.</p>
