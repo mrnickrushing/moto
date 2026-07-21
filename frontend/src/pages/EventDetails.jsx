@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MapPin, Calendar, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import Kicker from "@/components/Kicker";
 import Countdown from "@/components/Countdown";
 import { EVENT, SCHEDULE, IMAGES } from "@/data/rodeo";
 
@@ -9,7 +10,7 @@ function PageHead({ kicker, title, sub }) {
     <section className="pt-36 sm:pt-44 pb-14 bg-black border-b-2 border-ink-800">
       <div className="max-w-[1400px] mx-auto px-5 sm:px-8">
         <Reveal>
-          <p className="font-mono uppercase tracking-[0.3em] text-brand-cyan text-xs mb-4">{kicker}</p>
+          <Kicker color="cyan">{kicker}</Kicker>
           <h1 className="font-display uppercase text-6xl sm:text-8xl leading-[0.85]">{title}</h1>
           {sub && <p className="text-zinc-400 text-lg mt-6 max-w-2xl">{sub}</p>}
         </Reveal>
@@ -29,14 +30,14 @@ export default function EventDetails() {
     "There will be a bike and gear check booth during check-ins.",
     "One entry allowed per class.",
     "50cc Pee-Wee (4–6): parent must be present in the arena during the event.",
-    "Payment accepted online (card), Venmo, or cash.",
+    "Payment is Venmo or cash at check-in — due when you arrive.",
     `Pre-registration forms are due by ${EVENT.regDeadline}.`,
   ];
 
   return (
     <div data-testid="event-page">
       <PageHead
-        kicker="/ Event Details"
+        kicker="Event Details"
         title="The Rundown"
         sub={`${EVENT.tagline}. Everything you need to know before the gates swing open in ${EVENT.city}.`}
       />
@@ -60,7 +61,7 @@ export default function EventDetails() {
         <img src={IMAGES.checker} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.04]" />
         <div className="relative max-w-[1400px] mx-auto px-5 sm:px-8">
           <Reveal className="mb-12">
-            <p className="font-mono uppercase tracking-[0.3em] text-brand-cyan text-xs mb-4">/ Day Schedule</p>
+            <Kicker color="cyan">Day Schedule</Kicker>
             <h2 className="font-display uppercase text-5xl sm:text-7xl leading-none">Race Day Timeline</h2>
           </Reveal>
           <div className="space-y-px">
@@ -100,7 +101,7 @@ export default function EventDetails() {
           <Reveal delay={0.1}>
             <div className="border-2 border-ink-800 p-10 bg-black h-full flex flex-col justify-between">
               <div>
-                <p className="font-mono uppercase tracking-[0.3em] text-brand-pink text-xs mb-3">Countdown</p>
+                <Kicker color="pink">Countdown</Kicker>
                 <Countdown compact />
               </div>
               <div className="mt-10">

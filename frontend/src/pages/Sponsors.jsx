@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart, ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import Kicker from "@/components/Kicker";
 import { SPONSORS, EVENT } from "@/data/rodeo";
 
 export default function Sponsors() {
@@ -12,7 +13,7 @@ export default function Sponsors() {
       <section className="pt-36 sm:pt-44 pb-14 bg-black border-b-2 border-ink-800">
         <div className="max-w-[1400px] mx-auto px-5 sm:px-8">
           <Reveal>
-            <p className="font-mono uppercase tracking-[0.3em] text-brand-cyan text-xs mb-4">/ Sponsor Shout Out</p>
+            <Kicker color="pink">Sponsor Shout Out</Kicker>
             <h1 className="font-display uppercase text-6xl sm:text-8xl leading-[0.85]">
               The Ones Who <span className="text-brand-yellow">Back Us</span>
             </h1>
@@ -29,7 +30,7 @@ export default function Sponsors() {
           <Reveal>
             <div className="border-2 border-brand-yellow bg-black p-10 sm:p-16 relative overflow-hidden">
               <Heart className="text-brand-pink mb-6" size={44} />
-              <p className="font-mono uppercase tracking-[0.3em] text-brand-cyan text-xs mb-4">{featured.tier}</p>
+              <Kicker color="yellow">{featured.tier}</Kicker>
               <h2 className="font-display uppercase text-5xl sm:text-7xl leading-none">{featured.name}</h2>
               <p className="text-zinc-400 text-lg mt-6 max-w-2xl">
                 A huge thank you to {featured.name} for sponsoring the {featured.note}. From baking fresh

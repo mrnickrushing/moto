@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import Kicker from "@/components/Kicker";
 import Countdown from "@/components/Countdown";
 import SectionMarquee from "@/components/SectionMarquee";
 import { EVENT, EVENTS, IMAGES, SPONSORS, FLYERS, accentClass } from "@/data/rodeo";
@@ -181,14 +182,16 @@ export default function Home() {
         <div className="max-w-[1500px] mx-auto px-5 sm:px-8">
           <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-10 lg:gap-16 items-center">
             <Reveal>
-              <div className="relative border-2 border-brand-yellow p-8 sm:p-12 bg-black clip-corner poster-shadow-cyan">
-                <span className="absolute -top-4 left-7 torn-label bg-brand-pink text-white font-condensed font-extrabold uppercase tracking-[0.18em] px-5 py-2">
+              <div className="relative">
+                <span className="absolute -top-4 left-7 z-10 torn-label bg-brand-pink text-white font-condensed font-extrabold uppercase tracking-[0.18em] px-5 py-2">
                   Warning: Mayhem Incoming
                 </span>
-                <h2 className="font-display uppercase text-6xl sm:text-8xl leading-[0.84] mt-3">
-                  Gates<br /><span className="text-brand-yellow">Open In</span>
-                </h2>
-                <div className="mt-10 overflow-x-auto pb-2"><Countdown /></div>
+                <div className="border-2 border-brand-yellow p-8 sm:p-12 pt-12 sm:pt-14 bg-black clip-corner poster-shadow-cyan">
+                  <h2 className="font-display uppercase text-6xl sm:text-8xl leading-[0.84]">
+                    Gates<br /><span className="text-brand-yellow">Open In</span>
+                  </h2>
+                  <div className="mt-10 overflow-x-auto pb-2"><Countdown /></div>
+                </div>
               </div>
             </Reveal>
 
@@ -217,7 +220,7 @@ export default function Home() {
         <div className="relative max-w-[1500px] mx-auto px-5 sm:px-8">
           <Reveal className="mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-7">
             <div>
-              <p className="font-condensed font-extrabold uppercase tracking-[0.24em] text-brand-cyan text-sm mb-4">/ Built for the bold</p>
+              <Kicker color="cyan">Built for the bold</Kicker>
               <h2 className="font-display uppercase text-6xl sm:text-8xl leading-[0.83] max-w-4xl">
                 Dirt flies.<br /><span className="text-brand-yellow">Legends stick.</span>
               </h2>
@@ -307,7 +310,7 @@ export default function Home() {
         <div className="max-w-[1500px] mx-auto px-5 sm:px-8">
           <Reveal className="mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
             <div>
-              <p className="font-condensed font-extrabold uppercase tracking-[0.24em] text-brand-cyan text-sm mb-3">/ Straight off the wall</p>
+              <Kicker color="pink">Straight off the wall</Kicker>
               <h2 className="font-display uppercase text-6xl sm:text-8xl leading-none">The Poster Drop</h2>
             </div>
             <p className="font-brush text-brand-yellow text-3xl -rotate-2">Save it. Share it. Show up.</p>

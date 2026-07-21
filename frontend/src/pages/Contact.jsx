@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Mail, MapPin, Calendar, Send } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import Kicker from "@/components/Kicker";
 import api, { formatApiErrorDetail } from "@/lib/api";
 import { EVENT } from "@/data/rodeo";
 
@@ -30,7 +31,7 @@ export default function Contact() {
       <section className="pt-36 sm:pt-44 pb-14 bg-black border-b-2 border-ink-800">
         <div className="max-w-[1400px] mx-auto px-5 sm:px-8">
           <Reveal>
-            <p className="font-mono uppercase tracking-[0.3em] text-brand-cyan text-xs mb-4">/ Get In Touch</p>
+            <Kicker color="cyan">Get In Touch</Kicker>
             <h1 className="font-display uppercase text-6xl sm:text-8xl leading-[0.85]">
               Holler <span className="text-brand-pink">At Us</span>
             </h1>
