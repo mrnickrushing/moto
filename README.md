@@ -84,7 +84,7 @@ flowchart LR
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24+
 - Python 3.11+
 - A MongoDB database
 - A Stripe test account if you are exercising card payments
@@ -103,6 +103,7 @@ Create `backend/.env`:
 ```dotenv
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=moto_mayhem
+ENVIRONMENT=development
 
 JWT_SECRET=replace-with-a-long-random-secret
 ADMIN_EMAIL=admin@example.com
@@ -111,6 +112,9 @@ ADMIN_PASSWORD=replace-with-a-strong-password
 FRONTEND_URL=http://localhost:3000
 STRIPE_SECRET_KEY=sk_test_replace_me
 STRIPE_WEBHOOK_SECRET=whsec_replace_me
+
+SENTRY_DSN=https://public-key@org.ingest.us.sentry.io/project-id
+SENTRY_TRACES_SAMPLE_RATE=0.1
 ```
 
 Install and start the backend:
@@ -131,14 +135,27 @@ In another terminal, from the repository root:
 
 ```bash
 cd frontend
-npm install
-printf 'REACT_APP_BACKEND_URL=http://localhost:8000\n' > .env.local
-npm start
+yarn install --frozen-lockfile
+printf 'REACT_APP_BACKEND_URL=http://localhost:8000\nREACT_APP_SENTRY_DSN=\n' > .env.local
+yarn start
 ```
 
 Open `http://localhost:3000` and let it rip.
 
 > Environment files are ignored by Git. Never commit live database credentials, admin passwords, JWT secrets, or Stripe keys.
+
+### Production security and Sentry
+
+The FastAPI service applies the same core response protections normally provided by Helmet in an Express app: a restrictive Content Security Policy, HSTS, clickjacking and MIME-sniffing protection, permissions and referrer policies, trusted-host checks, strict CORS, request-size limits, cookie-origin CSRF checks, and endpoint rate limits.
+
+Production must set `ENVIRONMENT=production`, `FRONTEND_URL`, `ALLOWED_HOSTS`, and strong `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` values. If the platform terminates TLS and overwrites forwarded headers, set `TRUST_PROXY_HEADERS=true`. Stripe is disabled unless both `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are present.
+
+Sentry uses two projects so frontend and API errors remain separate:
+
+- `moto-web`: expose its public DSN at frontend build time as `REACT_APP_SENTRY_DSN`.
+- `moto-api`: provide its public DSN to the running API as `SENTRY_DSN`.
+
+Set `REACT_APP_SENTRY_ENVIRONMENT=production` and use the deployed commit SHA for both `REACT_APP_SENTRY_RELEASE` and `SENTRY_RELEASE`. Browser and API telemetry disable default PII collection and scrub request bodies, credentials, cookies, query strings, and checkout session identifiers. Session Replay is intentionally disabled. Production source maps are emitted only when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, and `REACT_APP_SENTRY_RELEASE` are all present during a frontend build; uploaded maps are then deleted from the public build output. Treat `SENTRY_AUTH_TOKEN` as a secret even though DSNs are public ingestion identifiers.
 
 ---
 
@@ -227,16 +244,22 @@ Build the frontend:
 
 ```bash
 cd frontend
-npm run build
+yarn install --frozen-lockfile
+yarn build
 ```
 
 Run the backend integration suite:
 
 ```bash
+MOTO_TEST_BASE_URL=https://test.example.com \
+MOTO_TEST_ADMIN_EMAIL=test-admin@example.com \
+MOTO_TEST_ADMIN_PASSWORD='test-only-password' \
 pytest backend/tests/backend_test.py
 ```
 
-The backend tests exercise a running API and create test registrations. Point them at the intended test environment and never run payment tests against live Stripe credentials.
+The backend tests have no default host or credentials. They exercise a running API and create test registrations, so point them only at an intended test environment and never run payment tests against live Stripe credentials.
+
+Every pull request and push to `main` runs the deterministic CI checks in `.github/workflows/ci.yml`: a frozen-lockfile frontend production build plus backend compilation and FastAPI import validation. The live API integration suite remains manual because it creates registrations, exercises admin mutations, and reaches Stripe.
 
 ---
 

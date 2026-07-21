@@ -44,16 +44,16 @@ export default function Contact() {
           <Reveal>
             <form onSubmit={submit} data-testid="contact-form" className="space-y-6">
               <div>
-                <label className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Name</label>
-                <input data-testid="contact-name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} placeholder="Your name" />
+                <label htmlFor="contact-name" className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Name</label>
+                <input id="contact-name" data-testid="contact-name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} placeholder="Your name" />
               </div>
               <div>
-                <label className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Email</label>
-                <input data-testid="contact-email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={field} placeholder="you@email.com" />
+                <label htmlFor="contact-email" className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Email</label>
+                <input id="contact-email" data-testid="contact-email" type="email" autoComplete="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={field} placeholder="you@email.com" />
               </div>
               <div>
-                <label className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Message</label>
-                <textarea data-testid="contact-message" required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={field} placeholder="Sponsorship, questions, mayhem…" />
+                <label htmlFor="contact-message" className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Message</label>
+                <textarea id="contact-message" data-testid="contact-message" required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={field} placeholder="Sponsorship, questions, mayhem…" />
               </div>
               <button
                 data-testid="contact-submit"

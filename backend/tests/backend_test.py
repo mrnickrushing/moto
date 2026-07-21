@@ -3,21 +3,29 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://rev-garage-7.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("MOTO_TEST_BASE_URL", "").rstrip("/")
 API = f"{BASE_URL}/api"
 
-ADMIN_EMAIL = "admin@motomayhem.com"
-ADMIN_PASSWORD = "MayhemAdmin2026!"
+ADMIN_EMAIL = os.environ.get("MOTO_TEST_ADMIN_EMAIL", "")
+ADMIN_PASSWORD = os.environ.get("MOTO_TEST_ADMIN_PASSWORD", "")
+
+pytestmark = pytest.mark.skipif(
+    not (BASE_URL and ADMIN_EMAIL and ADMIN_PASSWORD),
+    reason="Set MOTO_TEST_BASE_URL and test-only admin credentials to run live API tests",
+)
 
 
 @pytest.fixture(scope="session")
 def s():
-    return requests.Session()
+    session = requests.Session()
+    session.headers["Origin"] = BASE_URL
+    return session
 
 
 @pytest.fixture(scope="session")
 def admin_session():
     sess = requests.Session()
+    sess.headers["Origin"] = BASE_URL
     r = sess.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}, timeout=15)
     assert r.status_code == 200, f"Admin login failed: {r.status_code} {r.text}"
     return sess
@@ -34,14 +42,14 @@ def test_root(s):
 class TestAuth:
     def test_login_success_sets_cookies(self):
         sess = requests.Session()
+        sess.headers["Origin"] = BASE_URL
         r = sess.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}, timeout=15)
         assert r.status_code == 200
         data = r.json()
         assert data["email"] == ADMIN_EMAIL
         assert data["role"] == "admin"
-        assert data.get("token")
-        assert sess.cookies.get("access_token"), "access_token cookie not set"
-        assert sess.cookies.get("refresh_token"), "refresh_token cookie not set"
+        assert "token" not in data
+        assert any(cookie.name.endswith("moto_admin") for cookie in sess.cookies)
 
     def test_login_invalid(self, s):
         r = s.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": "wrong"}, timeout=15)
@@ -58,6 +66,7 @@ class TestAuth:
 
     def test_logout(self):
         sess = requests.Session()
+        sess.headers["Origin"] = BASE_URL
         sess.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}, timeout=15)
         r = sess.post(f"{API}/auth/logout", timeout=15)
         assert r.status_code == 200
@@ -66,12 +75,12 @@ class TestAuth:
 # ---------- Registrations ----------
 def _reg_payload(classes=None, payment_method="venmo_cash"):
     if classes is None:
-        classes = ["50cc Peewee (4-6)"]
+        classes = ["50cc Pee-Wee (4–6 yrs)"]
     return {
         "rider_name": "TEST_Rider",
         "date_of_birth": "2010-05-01",
         "age": "15",
-        "tshirt_size": "M",
+        "tshirt_size": "Adult M",
         "classes": classes,
         "parent_guardian": "TEST_Parent",
         "email": "test_rider@example.com",
@@ -93,7 +102,11 @@ class TestRegistrations:
         assert "id" in d
 
     def test_create_registration_multi_class(self, s):
-        payload = _reg_payload(classes=["A", "B", "C"])
+        payload = _reg_payload(classes=[
+            "50cc Pee-Wee (4–6 yrs)",
+            "65cc Class B (10–12 yrs)",
+            "TEEN Teen Class (13–17 yrs)",
+        ])
         r = s.post(f"{API}/registrations", json=payload, timeout=15)
         assert r.status_code == 200
         d = r.json()
@@ -103,14 +116,14 @@ class TestRegistrations:
     def test_create_registration_no_classes(self, s):
         payload = _reg_payload(classes=[])
         r = s.post(f"{API}/registrations", json=payload, timeout=15)
-        assert r.status_code == 400
+        assert r.status_code == 422
 
 
 # ---------- Payments ----------
 class TestPayments:
     def test_checkout_creates_stripe_session(self, s):
         reg = s.post(f"{API}/registrations", json=_reg_payload(), timeout=15).json()
-        r = s.post(f"{API}/payments/checkout", json={"registration_id": reg["id"], "origin_url": BASE_URL}, timeout=30)
+        r = s.post(f"{API}/payments/checkout", json={"registration_id": reg["id"]}, timeout=30)
         assert r.status_code == 200, r.text
         d = r.json()
         assert d.get("session_id", "").startswith("cs_")
@@ -124,7 +137,7 @@ class TestPayments:
         assert "status" in sd
 
     def test_checkout_bad_registration(self, s):
-        r = s.post(f"{API}/payments/checkout", json={"registration_id": "507f1f77bcf86cd799439011", "origin_url": BASE_URL}, timeout=15)
+        r = s.post(f"{API}/payments/checkout", json={"registration_id": "507f1f77bcf86cd799439011"}, timeout=15)
         assert r.status_code == 404
 
 

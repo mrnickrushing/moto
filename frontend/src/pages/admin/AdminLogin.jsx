@@ -42,12 +42,12 @@ export default function AdminLogin() {
 
         <form onSubmit={submit} className="space-y-5" data-testid="admin-login-form">
           <div>
-            <label className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Email</label>
-            <input data-testid="admin-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={field} placeholder="admin@motomayhem.com" />
+            <label htmlFor="admin-email" className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Email</label>
+            <input id="admin-email" data-testid="admin-email" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} className={field} placeholder="admin@motomayhem.com" />
           </div>
           <div>
-            <label className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Password</label>
-            <input data-testid="admin-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={field} placeholder="••••••••" />
+            <label htmlFor="admin-password" className="font-mono uppercase text-xs tracking-widest text-zinc-400 block mb-2">Password</label>
+            <input id="admin-password" data-testid="admin-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={field} placeholder="••••••••" />
           </div>
           {error && <p data-testid="admin-login-error" className="text-brand-pink font-mono text-sm">{error}</p>}
           <button

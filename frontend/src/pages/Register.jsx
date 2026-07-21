@@ -121,20 +121,20 @@ export default function Register() {
               <h2 className="font-display uppercase text-3xl mb-6">2. Rider Info</h2>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className={labelCls}>Rider Name</label>
-                  <input data-testid="rider-name" required value={form.rider_name} onChange={set("rider_name")} className={field} placeholder="Rider full name" />
+                  <label htmlFor="rider-name" className={labelCls}>Rider Name</label>
+                  <input id="rider-name" data-testid="rider-name" autoComplete="name" required value={form.rider_name} onChange={set("rider_name")} className={field} placeholder="Rider full name" />
                 </div>
                 <div>
-                  <label className={labelCls}>Date of Birth</label>
-                  <input data-testid="rider-dob" required value={form.date_of_birth} onChange={set("date_of_birth")} className={field} placeholder="MM/DD/YYYY" />
+                  <label htmlFor="rider-dob" className={labelCls}>Date of Birth</label>
+                  <input id="rider-dob" data-testid="rider-dob" autoComplete="bday" required value={form.date_of_birth} onChange={set("date_of_birth")} className={field} placeholder="MM/DD/YYYY" />
                 </div>
                 <div>
-                  <label className={labelCls}>Age (as of Jan 1, 2026)</label>
-                  <input data-testid="rider-age" required value={form.age} onChange={set("age")} className={field} placeholder="e.g. 9" />
+                  <label htmlFor="rider-age" className={labelCls}>Age (as of Jan 1, 2026)</label>
+                  <input id="rider-age" data-testid="rider-age" inputMode="numeric" required value={form.age} onChange={set("age")} className={field} placeholder="e.g. 9" />
                 </div>
                 <div>
-                  <label className={labelCls}>T-Shirt Size</label>
-                  <select data-testid="tshirt-size" value={form.tshirt_size} onChange={set("tshirt_size")} className={field}>
+                  <label htmlFor="tshirt-size" className={labelCls}>T-Shirt Size</label>
+                  <select id="tshirt-size" data-testid="tshirt-size" value={form.tshirt_size} onChange={set("tshirt_size")} className={field}>
                     <option value="">Select size</option>
                     {TSHIRT_SIZES.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -142,16 +142,16 @@ export default function Register() {
                   </select>
                 </div>
                 <div>
-                  <label className={labelCls}>Parent / Guardian</label>
-                  <input data-testid="parent-guardian" value={form.parent_guardian} onChange={set("parent_guardian")} className={field} placeholder="If rider is a minor" />
+                  <label htmlFor="parent-guardian" className={labelCls}>Parent / Guardian</label>
+                  <input id="parent-guardian" data-testid="parent-guardian" autoComplete="name" value={form.parent_guardian} onChange={set("parent_guardian")} className={field} placeholder="If rider is a minor" />
                 </div>
                 <div>
-                  <label className={labelCls}>Email</label>
-                  <input data-testid="rider-email" type="email" required value={form.email} onChange={set("email")} className={field} placeholder="you@email.com" />
+                  <label htmlFor="rider-email" className={labelCls}>Email</label>
+                  <input id="rider-email" data-testid="rider-email" type="email" autoComplete="email" required value={form.email} onChange={set("email")} className={field} placeholder="you@email.com" />
                 </div>
                 <div>
-                  <label className={labelCls}>Phone</label>
-                  <input data-testid="rider-phone" required value={form.phone} onChange={set("phone")} className={field} placeholder="(000) 000-0000" />
+                  <label htmlFor="rider-phone" className={labelCls}>Phone</label>
+                  <input id="rider-phone" data-testid="rider-phone" type="tel" autoComplete="tel" required value={form.phone} onChange={set("phone")} className={field} placeholder="(000) 000-0000" />
                 </div>
               </div>
             </div>
@@ -161,16 +161,16 @@ export default function Register() {
               <h2 className="font-display uppercase text-3xl mb-6">3. Emergency Contact</h2>
               <div className="grid sm:grid-cols-3 gap-5">
                 <div>
-                  <label className={labelCls}>Name</label>
-                  <input data-testid="emergency-name" required value={form.emergency_name} onChange={set("emergency_name")} className={field} placeholder="Contact name" />
+                  <label htmlFor="emergency-name" className={labelCls}>Name</label>
+                  <input id="emergency-name" data-testid="emergency-name" autoComplete="name" required value={form.emergency_name} onChange={set("emergency_name")} className={field} placeholder="Contact name" />
                 </div>
                 <div>
-                  <label className={labelCls}>Relationship</label>
-                  <input data-testid="emergency-relationship" required value={form.emergency_relationship} onChange={set("emergency_relationship")} className={field} placeholder="e.g. Parent" />
+                  <label htmlFor="emergency-relationship" className={labelCls}>Relationship</label>
+                  <input id="emergency-relationship" data-testid="emergency-relationship" required value={form.emergency_relationship} onChange={set("emergency_relationship")} className={field} placeholder="e.g. Parent" />
                 </div>
                 <div>
-                  <label className={labelCls}>Phone</label>
-                  <input data-testid="emergency-phone" required value={form.emergency_phone} onChange={set("emergency_phone")} className={field} placeholder="(000) 000-0000" />
+                  <label htmlFor="emergency-phone" className={labelCls}>Phone</label>
+                  <input id="emergency-phone" data-testid="emergency-phone" type="tel" autoComplete="tel" required value={form.emergency_phone} onChange={set("emergency_phone")} className={field} placeholder="(000) 000-0000" />
                 </div>
               </div>
             </div>

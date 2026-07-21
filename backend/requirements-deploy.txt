@@ -1,11 +1,13 @@
 # Minimal runtime deps actually imported by server.py (keeps the image small & build reliable).
-fastapi==0.110.1
-uvicorn==0.25.0
-motor==3.3.1
-pymongo==4.6.3
+fastapi==0.139.2
+starlette==1.3.1
+uvicorn==0.51.0
+motor==3.7.1
+pymongo==4.17.0
 pydantic==2.13.4
 python-dotenv==1.2.2
 bcrypt==4.1.3
 PyJWT==2.13.0
 stripe==14.4.1
 email-validator==2.3.0
+sentry-sdk==2.54.0
