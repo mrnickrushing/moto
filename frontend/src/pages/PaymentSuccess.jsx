@@ -14,9 +14,12 @@ export default function PaymentSuccess() {
       return;
     }
     let attempts = 0;
+    let timeoutId;
+    let cancelled = false;
     const poll = async () => {
       try {
         const { data } = await api.get(`/payments/status/${sessionId}`);
+        if (cancelled) return;
         if (data.payment_status === "paid") {
           setStatus("paid");
           return;
@@ -25,12 +28,18 @@ export default function PaymentSuccess() {
           setStatus("failed");
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        if (cancelled) return;
+      }
       attempts += 1;
-      if (attempts < 8) setTimeout(poll, 2000);
+      if (attempts < 8) timeoutId = window.setTimeout(poll, 2000);
       else setStatus("failed");
     };
     poll();
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [sessionId]);
 
   return (

@@ -131,9 +131,9 @@ In another terminal, from the repository root:
 
 ```bash
 cd frontend
-npm install
+yarn install --frozen-lockfile
 printf 'REACT_APP_BACKEND_URL=http://localhost:8000\n' > .env.local
-npm start
+yarn start
 ```
 
 Open `http://localhost:3000` and let it rip.
@@ -227,7 +227,8 @@ Build the frontend:
 
 ```bash
 cd frontend
-npm run build
+yarn install --frozen-lockfile
+yarn build
 ```
 
 Run the backend integration suite:
@@ -237,6 +238,8 @@ pytest backend/tests/backend_test.py
 ```
 
 The backend tests exercise a running API and create test registrations. Point them at the intended test environment and never run payment tests against live Stripe credentials.
+
+Every pull request and push to `main` runs the deterministic CI checks in `.github/workflows/ci.yml`: a frozen-lockfile frontend production build plus backend compilation and FastAPI import validation. The live API integration suite remains manual because it creates registrations, exercises admin mutations, and reaches Stripe.
 
 ---
 
