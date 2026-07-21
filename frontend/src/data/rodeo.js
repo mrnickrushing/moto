@@ -118,19 +118,6 @@ export const SPONSORS = [
     blurb:
       "Silver Sponsor serving up fuel for riders and families on race day. Grab a bite, cheer on the mayhem.",
   },
-  {
-    id: "prather-racing",
-    name: "Prather Racing",
-    tier: "Community Partner",
-    accent: "pink",
-    note: "",
-    category: "Racing Team",
-    location: "",
-    website: "",
-    teaser: "Community Partner flying the flag for grassroots racing.",
-    blurb:
-      "Community Partner flying the flag for grassroots racing and giving up-and-coming riders a shot at the podium.",
-  },
 ];
 
 export const getSponsor = (id) => SPONSORS.find((s) => s.id === id);
