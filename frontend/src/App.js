@@ -11,6 +11,7 @@ import Home from "@/pages/Home";
 import EventDetails from "@/pages/EventDetails";
 import Classes from "@/pages/Classes";
 import Sponsors from "@/pages/Sponsors";
+import SponsorDetail from "@/pages/SponsorDetail";
 import Register from "@/pages/Register";
 import Contact from "@/pages/Contact";
 import PaymentSuccess from "@/pages/PaymentSuccess";
@@ -57,6 +58,7 @@ function App() {
             <Route path="/event" element={<Layout><EventDetails /></Layout>} />
             <Route path="/classes" element={<Layout><Classes /></Layout>} />
             <Route path="/sponsors" element={<Layout><Sponsors /></Layout>} />
+            <Route path="/sponsors/:id" element={<Layout><SponsorDetail /></Layout>} />
             <Route path="/register" element={<Layout><Register /></Layout>} />
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
             <Route path="/payment/success" element={<Layout><PaymentSuccess /></Layout>} />

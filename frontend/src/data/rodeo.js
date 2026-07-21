@@ -53,13 +53,87 @@ export const CLASSES = [
 export const TSHIRT_SIZES = ["YXS", "YS", "YM", "YL", "Adult S", "Adult M", "Adult L", "Adult XL"];
 
 export const SPONSORS = [
-  { name: "Gold's Bakery", tier: "Champion Buckle Sponsor", note: "110cc 12 & Under Champion Buckle" },
-  { name: "Two Wheels Co.", tier: "Gold Sponsor", note: "" },
-  { name: "Dirt Devil Cycles", tier: "Gold Sponsor", note: "" },
-  { name: "Ione Feed & Supply", tier: "Silver Sponsor", note: "" },
-  { name: "Checkered Flag Café", tier: "Silver Sponsor", note: "" },
-  { name: "Prather Racing", tier: "Community Partner", note: "" },
+  {
+    id: "golds-bakery",
+    name: "Gold's Bakery",
+    tier: "Champion Buckle Sponsor",
+    accent: "yellow",
+    note: "110cc 12 & Under Champion Buckle",
+    category: "Bakery",
+    location: "Ione, CA",
+    website: "https://www.goldsbakery.com",
+    teaser: "Hometown Ione bakery putting up the 110cc Champion Buckle.",
+    blurb:
+      "A hometown bakery in the heart of Ione run by Ronnie Gold, turning out fresh sourdough, cinnamon rolls, cookies and seasonal treats for all of Amador County. Gold's Bakery steps up as our Champion Buckle Sponsor — putting up the buckle for the 110cc 12 & Under class champion.",
+  },
+  {
+    id: "two-wheels-co",
+    name: "Two Wheels Co.",
+    tier: "Gold Sponsor",
+    accent: "yellow",
+    note: "",
+    category: "Moto Shop",
+    location: "",
+    website: "",
+    teaser: "Gold Sponsor keeping local riders geared up.",
+    blurb:
+      "A proud Gold Sponsor of Moto Mayhem Rodeo and a champion of local two-wheeled culture — helping keep young riders geared up and on the track.",
+  },
+  {
+    id: "dirt-devil-cycles",
+    name: "Dirt Devil Cycles",
+    tier: "Gold Sponsor",
+    accent: "yellow",
+    note: "",
+    category: "Cycle Shop",
+    location: "",
+    website: "",
+    teaser: "Gold Sponsor and friend of the dirt.",
+    blurb:
+      "Gold Sponsor and friend of the dirt. Dirt Devil Cycles backs the next generation of racers chasing mayhem and buckles.",
+  },
+  {
+    id: "ione-feed-supply",
+    name: "Ione Feed & Supply",
+    tier: "Silver Sponsor",
+    accent: "cyan",
+    note: "",
+    category: "Feed & Ranch Supply",
+    location: "Ione, CA",
+    website: "",
+    teaser: "Amador County's local feed & ranch supply.",
+    blurb:
+      "Amador County's local stop for livestock feed, pet food, fencing and ranch supplies — started by longtime locals Randy & Michele Costa in 2017. A Silver Sponsor keeping the Ione riding community fueled and supported.",
+  },
+  {
+    id: "checkered-flag-cafe",
+    name: "Checkered Flag Café",
+    tier: "Silver Sponsor",
+    accent: "cyan",
+    note: "",
+    category: "Café",
+    location: "",
+    website: "",
+    teaser: "Silver Sponsor fueling riders on race day.",
+    blurb:
+      "Silver Sponsor serving up fuel for riders and families on race day. Grab a bite, cheer on the mayhem.",
+  },
+  {
+    id: "prather-racing",
+    name: "Prather Racing",
+    tier: "Community Partner",
+    accent: "pink",
+    note: "",
+    category: "Racing Team",
+    location: "",
+    website: "",
+    teaser: "Community Partner flying the flag for grassroots racing.",
+    blurb:
+      "Community Partner flying the flag for grassroots racing and giving up-and-coming riders a shot at the podium.",
+  },
 ];
+
+export const getSponsor = (id) => SPONSORS.find((s) => s.id === id);
 
 export const IMAGES = {
   hero: "https://images.unsplash.com/photo-1637431155699-8b379d496434?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHwzfHxtb3RvY3Jvc3MlMjByYWNlJTIwZGlydCUyMGp1bXB8ZW58MHx8fHwxNzg0NTY3MjY4fDA&ixlib=rb-4.1.0&q=85",
