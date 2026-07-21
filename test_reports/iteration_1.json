@@ -20,17 +20,17 @@
   ],
   "critical_code_review_comments": [
     "server.py is a single 407-line file; still readable but nearing threshold to split into auth/payments/admin modules as it grows.",
-    "seed_admin() updates admin password if the seeded value differs — good idempotency; verified admin login with MayhemAdmin2026! from .env works.",
+    "seed_admin() updates the admin password if the configured value differs; credentials are intentionally omitted from tracked reports.",
     "/api/payments/checkout responds with a real Stripe checkout session and inserts payment_transactions record (verified end-to-end).",
-    "get_current_admin correctly returns 401 for missing/invalid cookie and Bearer tokens.",
-    "CORS: allow_credentials=True with explicit FRONTEND_URL origin (not '*') — cookies flow correctly through preview ingress.",
-    "Cookies set httpOnly, secure, samesite=none — appropriate for cross-site preview URL."
+    "Current auth accepts only the hardened HTTP-only admin cookie; bearer-token fallback was removed.",
+    "Current CORS policy permits explicit trusted origins, methods, and headers only.",
+    "Current production cookies use the __Host- prefix with Secure, HttpOnly, Path=/, and SameSite=Lax."
   ],
   "updated_files": [
     "/app/backend/tests/backend_test.py (new)"
   ],
   "success_rate": {"backend": "100% (18/18)", "frontend": "100% (all requested flows)"},
-  "test_credentials": "admin@motomayhem.com / MayhemAdmin2026! (from /app/memory/test_credentials.md)",
+  "test_credentials": "REDACTED — provide test-only credentials through environment variables.",
   "seed_data_creation": "Test data prefixed with TEST_ created by pytest runs and Playwright register flows; visible in admin dashboard.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

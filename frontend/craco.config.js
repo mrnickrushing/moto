@@ -5,6 +5,12 @@ require("dotenv").config();
 // Check if we're in development/preview mode (not production build)
 // Craco sets NODE_ENV=development for start, NODE_ENV=production for build
 const isDevServer = process.env.NODE_ENV !== "production";
+const hasSentrySourceMaps = Boolean(
+  process.env.SENTRY_AUTH_TOKEN &&
+  process.env.SENTRY_ORG &&
+  process.env.SENTRY_PROJECT &&
+  process.env.REACT_APP_SENTRY_RELEASE
+);
 
 // Environment variable overrides
 const config = {
@@ -84,6 +90,29 @@ let webpackConfig = {
       '@': path.resolve(__dirname, 'src'),
     },
     configure: (webpackConfig) => {
+
+      if (!isDevServer && !hasSentrySourceMaps) {
+        // Never publish readable production source maps when they cannot be
+        // uploaded privately to Sentry.
+        webpackConfig.devtool = false;
+      }
+
+      if (!isDevServer && hasSentrySourceMaps) {
+        const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
+        webpackConfig.plugins.push(
+          sentryWebpackPlugin({
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            release: { name: process.env.REACT_APP_SENTRY_RELEASE },
+            sourcemaps: {
+              assets: "./build/static/js/**",
+              filesToDeleteAfterUpload: "./build/**/*.map",
+            },
+            telemetry: false,
+          }),
+        );
+      }
 
       // Add ignored patterns to reduce watched directories
         webpackConfig.watchOptions = {
