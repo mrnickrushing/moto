@@ -12,11 +12,13 @@ import EventDetails from "@/pages/EventDetails";
 import Classes from "@/pages/Classes";
 import Sponsors from "@/pages/Sponsors";
 import SponsorDetail from "@/pages/SponsorDetail";
+import BecomeSponsor from "@/pages/BecomeSponsor";
 import Register from "@/pages/Register";
 import Contact from "@/pages/Contact";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminPrint from "@/pages/admin/AdminPrint";
 import NotFound from "@/pages/NotFound";
 
 function ScrollToTop() {
@@ -58,6 +60,7 @@ function App() {
             <Route path="/event" element={<Layout><EventDetails /></Layout>} />
             <Route path="/classes" element={<Layout><Classes /></Layout>} />
             <Route path="/sponsors" element={<Layout><Sponsors /></Layout>} />
+            <Route path="/become-a-sponsor" element={<Layout><BecomeSponsor /></Layout>} />
             <Route path="/sponsors/:id" element={<Layout><SponsorDetail /></Layout>} />
             <Route path="/register" element={<Layout><Register /></Layout>} />
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
@@ -68,6 +71,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/print/:type"
+              element={
+                <ProtectedRoute>
+                  <AdminPrint />
                 </ProtectedRoute>
               }
             />

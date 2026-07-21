@@ -87,7 +87,7 @@ export default function Sponsors() {
               Get your business in front of the whole riding community. Reach out and join the Moto Mayhem family.
             </p>
             <Link
-              to="/contact"
+              to="/become-a-sponsor"
               data-testid="sponsor-contact-btn"
               className="inline-flex items-center gap-3 mt-10 font-anton uppercase tracking-widest text-lg px-10 py-5 bg-brand-yellow text-black hover:bg-brand-cyan transition-colors shadow-[6px_6px_0px_#ec4899]"
             >

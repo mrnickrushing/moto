@@ -154,7 +154,7 @@ export default function SponsorDetail() {
               Want To <span className="text-brand-pink">Sponsor</span> The Mayhem?
             </h2>
             <Link
-              to="/contact"
+              to="/become-a-sponsor"
               className="inline-flex items-center gap-3 mt-8 font-anton uppercase tracking-widest text-lg px-10 py-5 bg-brand-yellow text-black hover:bg-brand-cyan transition-colors shadow-[6px_6px_0px_#ec4899]"
             >
               Become A Sponsor <ArrowRight size={22} />
