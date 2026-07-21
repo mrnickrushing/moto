@@ -40,16 +40,8 @@ jobs:
           CI: true
           REACT_APP_BACKEND_URL: ""
 
-      - name: Block high and critical production dependency advisories
-        shell: bash
-        run: |
-          audit_status=0
-          yarn audit --groups dependencies --level high || audit_status=$?
-          # Yarn Classic returns a severity bitmask and --level only filters output.
-          # Fail on HIGH (8) or CRITICAL (16), but allow lower-severity advisories.
-          if (( audit_status & 24 )); then
-            exit 1
-          fi
+      - name: Block production dependency advisories
+        run: yarn audit --groups dependencies
 
   backend:
     name: Backend validation
