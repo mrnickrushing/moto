@@ -19,9 +19,67 @@ function Field({ label, value, className = "" }) {
   );
 }
 
+// Force the checkered accent to print even when "background graphics" is off.
+const CHECKER = {
+  height: "9px",
+  backgroundImage: "repeating-linear-gradient(45deg,#000 0 9px,#fff 9px 18px)",
+  WebkitPrintColorAdjust: "exact",
+  printColorAdjust: "exact",
+};
+
+function BrandMark({ className = "" }) {
+  return (
+    <span className={`font-display uppercase leading-none tracking-tight ${className}`}>
+      <span className="text-black">MOTO </span>
+      <span style={{ color: "#d81f63" }}>MAYHEM </span>
+      <span style={{ color: "#10aeb4" }}>RODEO</span>
+    </span>
+  );
+}
+
+function Letterhead({ subtitle, count, unit }) {
+  return (
+    <div className="mb-8">
+      <div className="flex items-end justify-between gap-6 border-b-4 border-black pb-3">
+        <div>
+          <BrandMark className="text-4xl sm:text-5xl" />
+          <p className="font-condensed font-extrabold uppercase tracking-[0.2em] text-[11px] text-neutral-600 mt-2">
+            Ride Hard • Cause Mayhem • Have Fun
+          </p>
+        </div>
+        <div className="text-right text-[11px] leading-snug text-neutral-700 shrink-0">
+          <p className="font-bold text-black">{EVENT.date}</p>
+          <p>{EVENT.location}</p>
+          <p>{EVENT.city}</p>
+          <p>{EVENT.email}</p>
+        </div>
+      </div>
+      <div style={CHECKER} />
+      <div className="flex items-baseline justify-between mt-4">
+        <h1 className="text-2xl font-extrabold uppercase tracking-wide">{subtitle}</h1>
+        <p className="text-xs text-neutral-600">
+          {count} {unit} · Printed {fmtDate(new Date().toISOString())}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function FormBrand({ label }) {
+  return (
+    <div className="flex items-center justify-between border-b border-neutral-300 pb-2 mb-4">
+      <BrandMark className="text-base" />
+      <span className="font-condensed font-extrabold uppercase tracking-[0.18em] text-[10px] text-neutral-500">
+        {label}
+      </span>
+    </div>
+  );
+}
+
 function RegistrationForm({ r }) {
   return (
     <div className="border-2 border-black p-6 mb-6 break-inside-avoid">
+      <FormBrand label="Rider Registration" />
       <div className="flex items-baseline justify-between border-b-2 border-black pb-3 mb-4">
         <h2 className="text-2xl font-extrabold uppercase text-black">{r.rider_name}</h2>
         <span className="text-sm font-bold uppercase text-black">
@@ -64,6 +122,7 @@ function RegistrationForm({ r }) {
 function SponsorForm({ s }) {
   return (
     <div className="border-2 border-black p-6 mb-6 break-inside-avoid">
+      <FormBrand label="Sponsor Inquiry" />
       <div className="flex items-baseline justify-between border-b-2 border-black pb-3 mb-4">
         <h2 className="text-2xl font-extrabold uppercase text-black">{s.business_name}</h2>
         <span className="text-sm font-bold uppercase text-black">{s.tier}</span>
@@ -131,12 +190,7 @@ export default function AdminPrint() {
       </div>
 
       <div className="max-w-[850px] mx-auto p-8" data-testid="print-view">
-        <div className="border-b-4 border-black pb-4 mb-6">
-          <h1 className="text-3xl font-extrabold uppercase">{EVENT.name} — {title}</h1>
-          <p className="text-sm text-neutral-600 mt-1">
-            {EVENT.date} · {EVENT.location}, {EVENT.city} · {items.length} {isSponsors ? "inquiries" : "riders"} · Printed {fmtDate(new Date().toISOString())}
-          </p>
-        </div>
+        <Letterhead subtitle={title} count={items.length} unit={isSponsors ? "inquiries" : "riders"} />
 
         {loading ? (
           <p className="text-neutral-500">Loading…</p>
