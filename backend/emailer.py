@@ -242,6 +242,14 @@ def registration_rider_email(reg: dict) -> tuple[str, str]:
     classes_html = "".join(
         f'<li style="margin:2px 0;">{_esc(c)}</li>' for c in classes
     )
+    total = reg.get("total", 0)
+    cash = reg.get("payment_method") == "venmo_cash"
+    total_row = (
+        f"${total:.0f} — Venmo or cash at check-in" if cash else f"${total:.0f}"
+    )
+    pay_note = (
+        f"Bring your ${total:.0f} entry as Venmo or cash on race day. " if cash else ""
+    )
     body = f"""
       <p style="margin:0 0 16px 0;">Hey {_esc(reg.get('rider_name', 'rider'))}, your spot is locked in.
       We can't wait to see you throw down at {EVENT_NAME}.</p>
@@ -250,13 +258,13 @@ def registration_rider_email(reg: dict) -> tuple[str, str]:
         {_rows([
             ("Rider", reg.get("rider_name")),
             ("Entries", f"{len(classes)} class{'es' if len(classes) != 1 else ''}"),
-            ("Total Due", f"${reg.get('total', 0):.0f} — Venmo or cash at check-in"),
+            ("Total", total_row),
         ])}
       </table>
       <p style="margin:0 0 6px 0;color:{_MUTED};font-size:12px;text-transform:uppercase;letter-spacing:1.5px;">Your classes</p>
       <ul style="margin:0 0 20px 18px;padding:0;color:{_TEXT};">{classes_html}</ul>
-      <p style="margin:0 0 22px 0;color:{_MUTED};">Bring your ${reg.get('total', 0):.0f} entry as Venmo or cash on
-      race day. All riders must wear a helmet and proper gear. See you at the gate!</p>
+      <p style="margin:0 0 22px 0;color:{_MUTED};">{pay_note}All riders must wear a helmet and proper gear.
+      See you at the gate!</p>
       {_button(site_url() + "/event", "Event Details")}
     """
     subject = f"You're in! {EVENT_NAME} registration confirmed"
