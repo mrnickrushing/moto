@@ -439,14 +439,20 @@ async def logout(response: Response):
 async def _send_registration_emails(reg: dict) -> None:
     rider_email = reg.get("email")
     if rider_email:
-        subject, html = emailer.registration_rider_email(reg)
+        try:
+            subject, html = emailer.registration_rider_email(reg)
+            await emailer.send_email(
+                rider_email, subject, html, reply_to=emailer.organizer_email()
+            )
+        except Exception:
+            logger.exception("Failed to build/send rider confirmation email")
+    try:
+        subject, html = emailer.registration_organizer_email(reg)
         await emailer.send_email(
-            rider_email, subject, html, reply_to=emailer.organizer_email()
+            emailer.organizer_email(), subject, html, reply_to=rider_email
         )
-    subject, html = emailer.registration_organizer_email(reg)
-    await emailer.send_email(
-        emailer.organizer_email(), subject, html, reply_to=rider_email
-    )
+    except Exception:
+        logger.exception("Failed to build/send organizer registration email")
 
 
 @api_router.post("/registrations")
@@ -491,14 +497,20 @@ async def create_contact(
 async def _send_sponsor_emails(inq: dict) -> None:
     applicant_email = inq.get("email")
     if applicant_email:
-        subject, html = emailer.sponsor_applicant_email(inq)
+        try:
+            subject, html = emailer.sponsor_applicant_email(inq)
+            await emailer.send_email(
+                applicant_email, subject, html, reply_to=emailer.organizer_email()
+            )
+        except Exception:
+            logger.exception("Failed to build/send sponsor applicant email")
+    try:
+        subject, html = emailer.sponsor_organizer_email(inq)
         await emailer.send_email(
-            applicant_email, subject, html, reply_to=emailer.organizer_email()
+            emailer.organizer_email(), subject, html, reply_to=applicant_email
         )
-    subject, html = emailer.sponsor_organizer_email(inq)
-    await emailer.send_email(
-        emailer.organizer_email(), subject, html, reply_to=applicant_email
-    )
+    except Exception:
+        logger.exception("Failed to build/send organizer sponsor email")
 
 
 @api_router.post("/sponsor-inquiry")

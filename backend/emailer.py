@@ -72,7 +72,11 @@ async def send_email(
     if not recipients:
         return False
     if not email_enabled():
-        logger.info("Email not configured; skipping %r to %s", subject, recipients)
+        logger.info(
+            "Email not configured; skipping %r to %d recipient(s)",
+            subject,
+            len(recipients),
+        )
         return False
     try:
         if _cfg("RESEND_API_KEY"):
@@ -81,10 +85,12 @@ async def send_email(
             await anyio.to_thread.run_sync(
                 _send_smtp, recipients, subject, html, reply_to
             )
-        logger.info("Sent email %r to %s", subject, recipients)
+        logger.info("Sent email %r to %d recipient(s)", subject, len(recipients))
         return True
     except Exception:  # noqa: BLE001 - never let mail break the request
-        logger.exception("Failed to send email %r to %s", subject, recipients)
+        logger.exception(
+            "Failed to send email %r to %d recipient(s)", subject, len(recipients)
+        )
         return False
 
 
@@ -166,6 +172,12 @@ def _esc(value) -> str:
         .replace(">", "&gt;")
         .replace('"', "&quot;")
     )
+
+
+def _subject(text) -> str:
+    """Strip CR/LF from user-supplied values interpolated into subject lines
+    (guards against email header injection)."""
+    return str("" if text is None else text).replace("\r", " ").replace("\n", " ")
 
 
 def _wordmark() -> str:
@@ -294,7 +306,7 @@ def registration_organizer_email(reg: dict) -> tuple[str, str]:
       </table>
       {_button(site_url() + "/admin", "Open Admin Dashboard")}
     """
-    subject = f"New registration — {reg.get('rider_name', 'rider')} ({len(classes)} entries)"
+    subject = f"New registration — {_subject(reg.get('rider_name', 'rider'))} ({len(classes)} entries)"
     return subject, layout("New rider registration.", _CYAN, "New Registration", body)
 
 
@@ -336,5 +348,5 @@ def sponsor_organizer_email(inq: dict) -> tuple[str, str]:
       </table>
       {_button(site_url() + "/admin", "Open Admin Dashboard")}
     """
-    subject = f"New sponsor inquiry — {inq.get('business_name', 'business')}"
+    subject = f"New sponsor inquiry — {_subject(inq.get('business_name', 'business'))}"
     return subject, layout("New sponsor inquiry.", _CYAN, "New Sponsor Inquiry", body)

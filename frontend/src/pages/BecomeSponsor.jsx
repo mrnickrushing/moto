@@ -37,7 +37,7 @@ export default function BecomeSponsor() {
     setLoading(true);
     try {
       await api.post("/sponsor-inquiry", form);
-      toast.success("Thanks for backing the mayhem! Check your email — we'll be in touch.");
+      toast.success("Thanks for backing the mayhem! We'll be in touch soon.");
       setForm(empty);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -58,8 +58,7 @@ export default function BecomeSponsor() {
             </h1>
             <p className="text-zinc-400 text-lg mt-6 max-w-2xl">
               Get your business in front of the whole riding community and give young riders the chance
-              to compete for a championship buckle. Fill this out and we'll be in touch — you'll get a
-              confirmation email right away.
+              to compete for a championship buckle. Fill this out and we'll be in touch soon.
             </p>
           </Reveal>
         </div>
