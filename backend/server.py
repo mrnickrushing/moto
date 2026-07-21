@@ -739,19 +739,20 @@ if _FRONTEND_BUILD.is_dir():
     if _static_dir.is_dir():
         app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
+    # Root build artifacts are explicitly mapped so a request path is never used
+    # to construct a filesystem path. All bundled assets live under /static.
+    _public_build_files = {
+        "asset-manifest.json": _FRONTEND_BUILD / "asset-manifest.json",
+    }
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # /api/* is handled by the router above; anything else falls back to the SPA.
         if full_path == "api" or full_path.startswith("api/"):
             return JSONResponse({"detail": "Not Found"}, status_code=404)
-        candidate = (_FRONTEND_BUILD / full_path).resolve()
-        build_root = _FRONTEND_BUILD.resolve()
-        try:
-            candidate.relative_to(build_root)
-        except ValueError:
-            return JSONResponse({"detail": "Not Found"}, status_code=404)
-        if full_path and candidate.is_file():
-            return FileResponse(str(candidate))
+        public_file = _public_build_files.get(full_path)
+        if public_file and public_file.is_file():
+            return FileResponse(str(public_file))
         return FileResponse(str(_FRONTEND_BUILD / "index.html"))
 
 else:
