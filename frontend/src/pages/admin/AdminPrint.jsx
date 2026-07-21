@@ -156,6 +156,8 @@ export default function AdminPrint() {
   const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setError(false);
     try {
       const path = isSponsors ? "/admin/sponsor-inquiries" : "/admin/registrations";
       const { data } = await api.get(path);
