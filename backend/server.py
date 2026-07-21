@@ -25,6 +25,7 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import DuplicateKeyError
 from pydantic import (
     BaseModel,
     Field,
@@ -256,6 +257,8 @@ NameText = Annotated[str, StringConstraints(min_length=1, max_length=120)]
 PhoneText = Annotated[str, StringConstraints(min_length=7, max_length=30)]
 MessageText = Annotated[str, StringConstraints(min_length=1, max_length=4000)]
 PasswordText = Annotated[str, StringConstraints(min_length=1, max_length=256)]
+# New/changed admin passwords must meet the same strength floor as ADMIN_PASSWORD.
+StrongPasswordText = Annotated[str, StringConstraints(min_length=14, max_length=256)]
 
 ALLOWED_CLASSES = {
     "50cc Pee-Wee (4–6 yrs)",
@@ -273,6 +276,17 @@ ALLOWED_CLASSES = {
 class LoginRequest(ApiModel):
     email: EmailStr
     password: PasswordText
+
+
+class ChangePasswordRequest(ApiModel):
+    current_password: PasswordText
+    new_password: StrongPasswordText
+
+
+class AdminUserCreate(ApiModel):
+    email: EmailStr
+    name: NameText
+    password: StrongPasswordText
 
 
 class RegistrationCreate(ApiModel):
@@ -378,6 +392,7 @@ class RegistrationUpdate(ApiModel):
 
 
 login_limiter = RateLimiter(RateLimit(5, 300), RateLimit(20, 3600))
+admin_account_limiter = RateLimiter(RateLimit(10, 300), RateLimit(30, 3600))
 registration_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 contact_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 sponsor_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
@@ -434,6 +449,41 @@ async def logout(response: Response):
         samesite="lax",
     )
     return {"message": "logged out"}
+
+
+@api_router.post("/auth/change-password")
+async def change_password(
+    body: ChangePasswordRequest,
+    response: Response,
+    admin: dict = Depends(get_current_admin),
+    _rate_limit: None = Depends(admin_account_limiter),
+):
+    object_id = parse_object_id(admin["_id"], detail="Invalid account")
+    user = await db.users.find_one({"_id": object_id})
+    if not user or not verify_password(
+        body.current_password, user.get("password_hash", "")
+    ):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    if verify_password(body.new_password, user.get("password_hash", "")):
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be different from the current password",
+        )
+    await db.users.update_one(
+        {"_id": object_id},
+        {
+            "$set": {
+                "password_hash": hash_password(body.new_password),
+                # Once changed in-app, an ADMIN_PASSWORD redeploy won't clobber it.
+                "password_self_managed": True,
+                "password_updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+    # Re-issue the session cookie so the current admin stays logged in.
+    access = create_access_token(str(object_id), user["email"])
+    set_auth_cookie(response, access)
+    return {"message": "Password updated"}
 
 
 async def _send_registration_emails(reg: dict) -> None:
@@ -732,6 +782,60 @@ async def admin_list_sponsor_inquiries(admin: dict = Depends(get_current_admin))
     return [_clean(d) for d in docs]
 
 
+def _clean_user(doc: dict) -> dict:
+    return {
+        "id": str(doc["_id"]),
+        "email": doc.get("email"),
+        "name": doc.get("name", "Admin"),
+        "role": doc.get("role"),
+        "created_at": doc.get("created_at"),
+    }
+
+
+@api_router.get("/admin/users")
+async def admin_list_users(admin: dict = Depends(get_current_admin)):
+    docs = await db.users.find({"role": "admin"}).sort("created_at", 1).to_list(1000)
+    return [_clean_user(d) for d in docs]
+
+
+@api_router.post("/admin/users", status_code=201)
+async def admin_create_user(
+    body: AdminUserCreate,
+    admin: dict = Depends(get_current_admin),
+    _rate_limit: None = Depends(admin_account_limiter),
+):
+    doc = {
+        "email": body.email.lower(),
+        "password_hash": hash_password(body.password),
+        "name": body.name,
+        "role": "admin",
+        # Created in-app, so seed_admin's ADMIN_PASSWORD sync never touches it.
+        "password_self_managed": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        result = await db.users.insert_one(doc)
+    except DuplicateKeyError:
+        raise HTTPException(
+            status_code=409, detail="An admin with that email already exists"
+        )
+    doc["_id"] = result.inserted_id
+    return _clean_user(doc)
+
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
+    object_id = parse_object_id(user_id, detail="Invalid user identifier")
+    if str(object_id) == str(admin["_id"]):
+        raise HTTPException(status_code=400, detail="You cannot remove your own account")
+    if await db.users.count_documents({"role": "admin"}) <= 1:
+        raise HTTPException(status_code=400, detail="Cannot remove the last admin")
+    result = await db.users.delete_one({"_id": object_id, "role": "admin"})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    return {"message": "removed"}
+
+
 # ----------------------------------------------------------------------------
 # Startup
 # ----------------------------------------------------------------------------
@@ -773,6 +877,9 @@ async def seed_admin():
             }
         )
         logger.info("Seeded admin user %s", admin_email)
+    elif existing.get("password_self_managed"):
+        # Admin changed their password in-app; don't overwrite it from env.
+        logger.info("Admin %s manages its own password; skipping env sync", admin_email)
     elif not verify_password(admin_password, existing["password_hash"]):
         await db.users.update_one(
             {"email": admin_email},

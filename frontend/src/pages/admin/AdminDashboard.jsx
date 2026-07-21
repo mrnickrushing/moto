@@ -11,6 +11,7 @@ import {
   Check,
   ExternalLink,
   Printer,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
@@ -101,6 +102,9 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-5">
             <span className="font-mono text-xs text-zinc-500 hidden sm:inline">{user?.email}</span>
+            <Link data-testid="admin-settings-link" to="/admin/settings" className="flex items-center gap-2 font-mono uppercase text-xs tracking-widest text-zinc-300 hover:text-brand-cyan transition-colors">
+              <Settings size={16} /> Settings
+            </Link>
             <button data-testid="admin-logout" onClick={doLogout} className="flex items-center gap-2 font-mono uppercase text-xs tracking-widest text-zinc-300 hover:text-brand-pink transition-colors">
               <LogOut size={16} /> Logout
             </button>
