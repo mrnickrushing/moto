@@ -18,6 +18,8 @@ import Contact from "@/pages/Contact";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminAcceptInvite from "@/pages/admin/AdminAcceptInvite";
+import AdminForgotPassword from "@/pages/admin/AdminForgotPassword";
+import AdminResetPassword from "@/pages/admin/AdminResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminPrint from "@/pages/admin/AdminPrint";
@@ -69,6 +71,8 @@ function App() {
             <Route path="/payment/success" element={<Layout><PaymentSuccess /></Layout>} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/accept-invite" element={<AdminAcceptInvite />} />
+            <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
+            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             <Route
               path="/admin"
               element={

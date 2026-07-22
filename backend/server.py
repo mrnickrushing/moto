@@ -1,4 +1,5 @@
 import hashlib
+import io
 import logging
 import os
 import secrets
@@ -10,6 +11,9 @@ from uuid import uuid4
 
 import bcrypt
 import jwt
+import pyotp
+import qrcode
+import qrcode.image.svg
 import sentry_sdk
 import stripe
 from bson import ObjectId
@@ -197,6 +201,95 @@ def generate_invite_token() -> tuple[str, str, datetime]:
     return raw_token, hash_invite_token(raw_token), expires_at
 
 
+RESET_TOKEN_EXPIRY_HOURS = 1  # short-lived: this is an active-account credential reset
+
+
+def generate_reset_token() -> tuple[str, str, datetime]:
+    """Returns (raw_token_for_the_email_link, hash_stored_in_mongo, expires_at)."""
+    raw_token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=RESET_TOKEN_EXPIRY_HOURS)
+    return raw_token, hash_invite_token(raw_token), expires_at
+
+
+# ----------------------------------------------------------------------------
+# Two-factor auth (TOTP)
+# ----------------------------------------------------------------------------
+TOTP_ISSUER = "MOTO Mayhem Rodeo"
+MFA_PENDING_TOKEN_MINUTES = 5
+BACKUP_CODE_COUNT = 8
+
+
+def totp_qr_svg(secret: str, email: str) -> str:
+    uri = pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name=TOTP_ISSUER)
+    img = qrcode.make(uri, image_factory=qrcode.image.svg.SvgPathImage)
+    buf = io.BytesIO()
+    img.save(buf)
+    return buf.getvalue().decode("utf-8")
+
+
+def generate_backup_codes(count: int = BACKUP_CODE_COUNT) -> list[str]:
+    return [f"{secrets.token_hex(4).upper()[:4]}-{secrets.token_hex(4).upper()[:4]}" for _ in range(count)]
+
+
+def hash_backup_code(code: str) -> str:
+    # Normalize so "abcd-1234" and "ABCD-1234" hash the same.
+    return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
+
+
+def create_mfa_pending_token(user_id: str) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": user_id,
+        "iat": now,
+        "nbf": now,
+        "exp": now + timedelta(minutes=MFA_PENDING_TOKEN_MINUTES),
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
+        "jti": str(uuid4()),
+        "type": "mfa_pending",
+    }
+    return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
+
+
+def decode_mfa_pending_token(token: str) -> ObjectId:
+    try:
+        payload = jwt.decode(
+            token,
+            get_jwt_secret(),
+            algorithms=[JWT_ALGORITHM],
+            issuer=JWT_ISSUER,
+            audience=JWT_AUDIENCE,
+            options={"require": ["sub", "iat", "nbf", "exp", "iss", "aud", "jti", "type"]},
+        )
+        if payload.get("type") != "mfa_pending":
+            raise HTTPException(status_code=401, detail="Invalid or expired code challenge")
+        return parse_object_id(payload["sub"], detail="Invalid code challenge")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Code challenge expired, please sign in again")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid or expired code challenge")
+
+
+async def log_admin_action(
+    actor_email: str | None, action: str, target: str = "", detail: str = ""
+) -> None:
+    """Best-effort audit trail for admin-authenticated mutations. Never raises
+    into the request path — a logging failure shouldn't fail the action it's
+    describing."""
+    try:
+        await db.admin_actions.insert_one(
+            {
+                "actor_email": actor_email,
+                "action": action,
+                "target": target,
+                "detail": detail,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("Failed to record admin action %s", action)
+
+
 def create_access_token(user_id: str, email: str) -> str:
     now = datetime.now(timezone.utc)
     payload = {
@@ -247,7 +340,13 @@ async def get_current_admin(request: Request) -> dict:
         if not user or user.get("role") != "admin":
             raise HTTPException(status_code=401, detail="Not authorized")
         user["_id"] = str(user["_id"])
-        user.pop("password_hash", None)
+        for secret_field in (
+            "password_hash",
+            "totp_secret",
+            "totp_secret_pending",
+            "backup_codes_hashed",
+        ):
+            user.pop(secret_field, None)
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
@@ -306,6 +405,31 @@ class AdminInviteCreate(ApiModel):
 
 class AdminInviteAccept(ApiModel):
     password: StrongPasswordText
+
+
+class ForgotPasswordRequest(ApiModel):
+    email: EmailStr
+
+
+class PasswordResetAccept(ApiModel):
+    password: StrongPasswordText
+
+
+TotpCodeText = Annotated[str, StringConstraints(min_length=6, max_length=6, pattern=r"^\d{6}$")]
+
+
+class TwoFactorVerify(ApiModel):
+    code: TotpCodeText
+
+
+class TwoFactorDisable(ApiModel):
+    password: PasswordText
+
+
+class LoginVerify2FA(ApiModel):
+    mfa_token: str
+    # A backup code ("XXXX-XXXX") is longer than a TOTP code, so accept either shape here.
+    code: Annotated[str, StringConstraints(min_length=6, max_length=20)]
 
 
 class RegistrationCreate(ApiModel):
@@ -413,6 +537,9 @@ class RegistrationUpdate(ApiModel):
 login_limiter = RateLimiter(RateLimit(5, 300), RateLimit(20, 3600))
 admin_account_limiter = RateLimiter(RateLimit(10, 300), RateLimit(30, 3600))
 invite_limiter = RateLimiter(RateLimit(20, 300), RateLimit(60, 3600))
+forgot_password_limiter = RateLimiter(RateLimit(5, 300), RateLimit(15, 3600))
+reset_password_limiter = RateLimiter(RateLimit(20, 300), RateLimit(60, 3600))
+mfa_verify_limiter = RateLimiter(RateLimit(8, 300), RateLimit(25, 3600))
 registration_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 contact_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 sponsor_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
@@ -449,11 +576,58 @@ async def login(
     if not user or not password_valid or user.get("role") != "admin":
         raise HTTPException(status_code=401, detail="Invalid email or password")
     uid = str(user["_id"])
+    if user.get("totp_enabled"):
+        return {
+            "mfa_required": True,
+            "mfa_token": create_mfa_pending_token(uid),
+        }
     access = create_access_token(uid, email)
     set_auth_cookie(response, access)
     return {
         "id": uid,
         "email": email,
+        "name": user.get("name", "Admin"),
+        "role": user.get("role"),
+    }
+
+
+@api_router.post("/auth/login/verify-2fa")
+async def login_verify_2fa(
+    body: LoginVerify2FA,
+    response: Response,
+    _rate_limit: None = Depends(mfa_verify_limiter),
+):
+    object_id = decode_mfa_pending_token(body.mfa_token)
+    user = await db.users.find_one({"_id": object_id})
+    if not user or user.get("role") != "admin" or not user.get("totp_enabled"):
+        raise HTTPException(status_code=401, detail="Invalid or expired code challenge")
+
+    code = body.code.strip()
+    totp_secret = user.get("totp_secret", "")
+    valid = bool(totp_secret) and pyotp.TOTP(totp_secret).verify(code, valid_window=1)
+
+    used_backup_code = None
+    if not valid:
+        code_hash = hash_backup_code(code)
+        for candidate in user.get("backup_codes_hashed", []):
+            if secrets.compare_digest(candidate, code_hash):
+                valid = True
+                used_backup_code = candidate
+                break
+
+    if not valid:
+        raise HTTPException(status_code=401, detail="Invalid authentication code")
+
+    if used_backup_code:
+        await db.users.update_one(
+            {"_id": object_id}, {"$pull": {"backup_codes_hashed": used_backup_code}}
+        )
+
+    access = create_access_token(str(object_id), user["email"])
+    set_auth_cookie(response, access)
+    return {
+        "id": str(object_id),
+        "email": user["email"],
         "name": user.get("name", "Admin"),
         "role": user.get("role"),
     }
@@ -508,7 +682,77 @@ async def change_password(
     # Re-issue the session cookie so the current admin stays logged in.
     access = create_access_token(str(object_id), user["email"])
     set_auth_cookie(response, access)
+    await log_admin_action(user["email"], "admin.password_change", target=user["email"])
     return {"message": "Password updated"}
+
+
+@api_router.post("/auth/2fa/setup")
+async def setup_2fa(
+    admin: dict = Depends(get_current_admin),
+    _rate_limit: None = Depends(admin_account_limiter),
+):
+    object_id = parse_object_id(admin["_id"], detail="Invalid account")
+    user = await db.users.find_one({"_id": object_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Account not found")
+    if user.get("totp_enabled"):
+        raise HTTPException(status_code=400, detail="Two-factor authentication is already enabled")
+    secret = pyotp.random_base32()
+    await db.users.update_one({"_id": object_id}, {"$set": {"totp_secret_pending": secret}})
+    return {
+        "secret": secret,
+        "qr_svg": totp_qr_svg(secret, user["email"]),
+    }
+
+
+@api_router.post("/auth/2fa/verify")
+async def verify_2fa(
+    body: TwoFactorVerify,
+    admin: dict = Depends(get_current_admin),
+    _rate_limit: None = Depends(admin_account_limiter),
+):
+    object_id = parse_object_id(admin["_id"], detail="Invalid account")
+    user = await db.users.find_one({"_id": object_id})
+    pending_secret = user.get("totp_secret_pending") if user else None
+    if not pending_secret:
+        raise HTTPException(status_code=400, detail="Start setup before verifying a code")
+    if not pyotp.TOTP(pending_secret).verify(body.code, valid_window=1):
+        raise HTTPException(status_code=400, detail="Incorrect code — check your authenticator app and try again")
+    backup_codes = generate_backup_codes()
+    await db.users.update_one(
+        {"_id": object_id},
+        {
+            "$set": {
+                "totp_secret": pending_secret,
+                "totp_enabled": True,
+                "backup_codes_hashed": [hash_backup_code(c) for c in backup_codes],
+            },
+            "$unset": {"totp_secret_pending": ""},
+        },
+    )
+    await log_admin_action(admin.get("email"), "admin.2fa_enabled", target=admin.get("email"))
+    return {"backup_codes": backup_codes}
+
+
+@api_router.post("/auth/2fa/disable")
+async def disable_2fa(
+    body: TwoFactorDisable,
+    admin: dict = Depends(get_current_admin),
+    _rate_limit: None = Depends(admin_account_limiter),
+):
+    object_id = parse_object_id(admin["_id"], detail="Invalid account")
+    user = await db.users.find_one({"_id": object_id})
+    if not user or not verify_password(body.password, user.get("password_hash", "")):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    await db.users.update_one(
+        {"_id": object_id},
+        {
+            "$set": {"totp_enabled": False},
+            "$unset": {"totp_secret": "", "totp_secret_pending": "", "backup_codes_hashed": ""},
+        },
+    )
+    await log_admin_action(admin.get("email"), "admin.2fa_disabled", target=admin.get("email"))
+    return {"message": "Two-factor authentication disabled"}
 
 
 async def _find_pending_invite(raw_token: str) -> dict:
@@ -576,6 +820,92 @@ async def _send_invite_email(email: str, name: str, invited_by: str, raw_token: 
         await emailer.send_email(email, subject, html, reply_to=emailer.organizer_email())
     except Exception:
         logger.exception("Failed to build/send admin invite email")
+
+
+async def _send_password_reset_email(email: str, name: str, raw_token: str) -> None:
+    reset_url = f"{emailer.site_url()}/admin/reset-password?token={raw_token}"
+    try:
+        subject, html = emailer.admin_password_reset_email(
+            name, reset_url, RESET_TOKEN_EXPIRY_HOURS
+        )
+        await emailer.send_email(email, subject, html, reply_to=emailer.organizer_email())
+    except Exception:
+        logger.exception("Failed to build/send password reset email")
+
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    background: BackgroundTasks,
+    _rate_limit: None = Depends(forgot_password_limiter),
+):
+    # Always return the same response whether or not the account exists, so
+    # this endpoint can't be used to enumerate registered admin emails.
+    email = body.email.lower()
+    generic_response = {
+        "message": "If that email has an admin account, a reset link is on its way."
+    }
+    user = await db.users.find_one({"email": email, "role": "admin"})
+    if not user or user.get("status") == "pending":
+        return generic_response
+    raw_token, token_hash, expires_at = generate_reset_token()
+    await db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"reset_token_hash": token_hash, "reset_expires_at": expires_at.isoformat()}},
+    )
+    background.add_task(
+        _send_password_reset_email, email, user.get("name", "Admin"), raw_token
+    )
+    return generic_response
+
+
+async def _find_valid_reset(raw_token: str) -> dict:
+    token_hash = hash_invite_token(raw_token)
+    user = await db.users.find_one({"reset_token_hash": token_hash})
+    reset_error = HTTPException(status_code=404, detail="Invalid or expired reset link")
+    if not user:
+        raise reset_error
+    expires_at = user.get("reset_expires_at")
+    if not expires_at or datetime.fromisoformat(expires_at) < datetime.now(timezone.utc):
+        raise reset_error
+    return user
+
+
+@api_router.get("/auth/reset-password/{token}")
+async def get_reset_password(token: str, _rate_limit: None = Depends(reset_password_limiter)):
+    user = await _find_valid_reset(token)
+    return {"name": user.get("name"), "email": user.get("email")}
+
+
+@api_router.post("/auth/reset-password/{token}")
+async def reset_password(
+    token: str,
+    body: PasswordResetAccept,
+    response: Response,
+    _rate_limit: None = Depends(reset_password_limiter),
+):
+    user = await _find_valid_reset(token)
+    object_id = user["_id"]
+    await db.users.update_one(
+        {"_id": object_id},
+        {
+            "$set": {
+                "password_hash": hash_password(body.password),
+                "password_self_managed": True,
+                "password_updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+            "$unset": {"reset_token_hash": "", "reset_expires_at": ""},
+        },
+    )
+    access = create_access_token(str(object_id), user["email"])
+    set_auth_cookie(response, access)
+    await log_admin_action(user["email"], "admin.password_reset", target=user["email"])
+    return {
+        "id": str(object_id),
+        "email": user["email"],
+        "name": user.get("name", "Admin"),
+        "role": "admin",
+    }
 
 
 async def _send_registration_emails(reg: dict) -> None:
@@ -848,6 +1178,10 @@ async def admin_update_registration(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Registration not found")
     doc = await db.registrations.find_one({"_id": object_id})
+    detail = ", ".join(f"{k}={v}" for k, v in updates.items() if k != "updated_at")
+    await log_admin_action(
+        admin.get("email"), "registration.update", target=reg_id, detail=detail
+    )
     return _clean(doc)
 
 
@@ -859,6 +1193,7 @@ async def admin_delete_registration(
     result = await db.registrations.delete_one({"_id": object_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Registration not found")
+    await log_admin_action(admin.get("email"), "registration.delete", target=reg_id)
     return {"message": "deleted"}
 
 
@@ -919,6 +1254,7 @@ async def admin_invite_user(
         )
     doc["_id"] = result.inserted_id
     background.add_task(_send_invite_email, email, body.name, admin.get("email"), raw_token)
+    await log_admin_action(admin.get("email"), "admin.invite", target=email)
     return _clean_user(doc)
 
 
@@ -943,6 +1279,7 @@ async def admin_resend_invite(
     background.add_task(
         _send_invite_email, user["email"], user.get("name", "Admin"), admin.get("email"), raw_token
     )
+    await log_admin_action(admin.get("email"), "admin.resend_invite", target=user["email"])
     return {"message": "Invite resent"}
 
 
@@ -960,7 +1297,27 @@ async def admin_delete_user(user_id: str, admin: dict = Depends(get_current_admi
     result = await db.users.delete_one({"_id": object_id, "role": "admin"})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Admin user not found")
+    await log_admin_action(
+        admin.get("email"), "admin.remove", target=target.get("email") if target else user_id
+    )
     return {"message": "removed"}
+
+
+def _clean_audit(doc: dict) -> dict:
+    return {
+        "id": str(doc["_id"]),
+        "actor_email": doc.get("actor_email"),
+        "action": doc.get("action"),
+        "target": doc.get("target"),
+        "detail": doc.get("detail"),
+        "created_at": doc.get("created_at"),
+    }
+
+
+@api_router.get("/admin/audit-log")
+async def admin_audit_log(admin: dict = Depends(get_current_admin)):
+    docs = await db.admin_actions.find().sort("created_at", -1).to_list(200)
+    return [_clean_audit(d) for d in docs]
 
 
 # ----------------------------------------------------------------------------

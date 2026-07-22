@@ -369,3 +369,18 @@ def admin_invite_email(
     return subject, layout(
         "You've been invited as a MOTO Mayhem Rodeo admin.", _CYAN, "You're Invited", body
     )
+
+
+def admin_password_reset_email(name: str, reset_url: str, expires_hours: int) -> tuple[str, str]:
+    body = f"""
+      <p style="margin:0 0 16px 0;">Hey {_esc(name)}, we got a request to reset the password
+      on your {EVENT_NAME} admin account.</p>
+      <p style="margin:0 0 22px 0;color:{_MUTED};">This link expires in {expires_hours} hour{'s' if expires_hours != 1 else ''}
+      and only works once. If you didn't request this, you can safely ignore this email —
+      your password won't change.</p>
+      {_button(reset_url, "Reset Password")}
+    """
+    subject = f"Reset your {EVENT_NAME} admin password"
+    return subject, layout(
+        "Reset your MOTO Mayhem Rodeo admin password.", _PINK, "Password Reset", body
+    )

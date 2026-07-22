@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /payment/success
 
-Sitemap: https://moto-app-production.up.railway.app/sitemap.xml
+Sitemap: https://moto.rushingtechnologies.com/sitemap.xml

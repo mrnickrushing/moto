@@ -192,13 +192,15 @@ class CsrfOriginMiddleware(BaseHTTPMiddleware):
         self.cookie_name = cookie_name
 
     async def dispatch(self, request: Request, call_next):
-        admin_mutation = request.url.path.startswith("/api/admin/")
+        # Login itself carries no cookie yet but still needs an origin check
+        # (login CSRF: tricking a browser into signing into an attacker's
+        # account). Every other unsafe-method request needs one exactly when
+        # it's riding on the session cookie — that covers /api/admin/* and
+        # every cookie-authenticated /api/auth/* mutation (change-password,
+        # 2fa/*, logout) without having to enumerate paths by hand.
         login_attempt = request.url.path == "/api/auth/login"
-        logout_attempt = request.url.path == "/api/auth/logout"
         cookie_authenticated = self.cookie_name in request.cookies
-        origin_required = login_attempt or (
-            (admin_mutation or logout_attempt) and cookie_authenticated
-        )
+        origin_required = login_attempt or cookie_authenticated
         if request.method in UNSAFE_METHODS and origin_required:
             origin = request.headers.get("origin")
             if not origin:
