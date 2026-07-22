@@ -943,9 +943,21 @@ if _FRONTEND_BUILD.is_dir():
 
     # Root build artifacts are explicitly mapped so a request path is never used
     # to construct a filesystem path. All bundled assets live under /static.
-    _public_build_files = {
-        "asset-manifest.json": _FRONTEND_BUILD / "asset-manifest.json",
-    }
+    _public_build_filenames = [
+        "asset-manifest.json",
+        "favicon.ico",
+        "favicon-16.png",
+        "favicon-32.png",
+        "favicon-48.png",
+        "apple-touch-icon.png",
+        "icon-192.png",
+        "icon-512.png",
+        "manifest.json",
+        "og-image.jpg",
+        "robots.txt",
+        "sitemap.xml",
+    ]
+    _public_build_files = {name: _FRONTEND_BUILD / name for name in _public_build_filenames}
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
