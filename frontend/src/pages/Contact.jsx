@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Mail, MapPin, Calendar, Send } from "lucide-react";
+import { Mail, MapPin, Calendar, Facebook, Send } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import Kicker from "@/components/Kicker";
 import api, { formatApiErrorDetail } from "@/lib/api";
@@ -69,6 +69,7 @@ export default function Contact() {
             <div className="space-y-px">
               {[
                 { icon: Mail, label: "Email", value: EVENT.email, href: `mailto:${EVENT.email}` },
+                { icon: Facebook, label: "Facebook", value: "Follow The Mayhem", href: EVENT.facebook, external: true },
                 { icon: MapPin, label: "Location", value: `${EVENT.location}, ${EVENT.city}` },
                 { icon: Calendar, label: "Event Date", value: EVENT.date },
               ].map((it, i) => (
@@ -77,7 +78,11 @@ export default function Contact() {
                   <div>
                     <p className="font-mono uppercase text-xs tracking-widest text-zinc-500">{it.label}</p>
                     {it.href ? (
-                      <a href={it.href} className="font-display uppercase text-2xl leading-none mt-1 block break-all hover:text-brand-yellow transition-colors">{it.value}</a>
+                      <a
+                        href={it.href}
+                        {...(it.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="font-display uppercase text-2xl leading-none mt-1 block break-all hover:text-brand-yellow transition-colors"
+                      >{it.value}</a>
                     ) : (
                       <p className="font-display uppercase text-2xl leading-none mt-1">{it.value}</p>
                     )}

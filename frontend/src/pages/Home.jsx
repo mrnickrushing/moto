@@ -17,6 +17,7 @@ import Kicker from "@/components/Kicker";
 import Countdown from "@/components/Countdown";
 import SectionMarquee from "@/components/SectionMarquee";
 import Memorial from "@/components/Memorial";
+import SponsorLogo from "@/components/SponsorLogo";
 import { EVENT, EVENTS, IMAGES, SPONSORS, FLYERS, accentClass } from "@/data/rodeo";
 
 const RACE_FACTS = [
@@ -345,7 +346,8 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-ink-800 border-2 border-ink-800">
             {SPONSORS.slice(0, 6).map((s, i) => (
               <Reveal key={s.name} delay={i * 0.05}>
-                <div className="bg-ink-900 p-7 sm:p-10 h-full hover:bg-brand-cream hover:text-black transition-colors group">
+                <div className="bg-ink-900 p-7 sm:p-10 h-full hover:bg-brand-cream hover:text-black transition-colors group flex flex-col">
+                  <SponsorLogo sponsor={s} className="h-10 sm:h-14 w-auto max-w-[70%] object-contain object-left mb-4" />
                   <p className="font-display uppercase text-2xl sm:text-4xl leading-none">{s.name}</p>
                   <p className="font-condensed font-bold text-xs sm:text-sm uppercase tracking-widest text-brand-pink mt-3 group-hover:text-brand-pink">{s.tier}</p>
                 </div>
