@@ -42,12 +42,14 @@ export default function FlyerLightbox({ flyers, index, onClose, onChange }) {
       <img
         src={flyers[index]}
         alt={`MOTO Mayhem event flyer ${index + 1}`}
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
         className="max-h-[82vh] max-w-[92vw] object-contain border-4 border-brand-pink poster-shadow-cyan"
       />
 
       {flyers.length > 1 && (
         <div
+          role="presentation"
           className="absolute bottom-5 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-5 sm:gap-7"
           onClick={(e) => e.stopPropagation()}
         >
