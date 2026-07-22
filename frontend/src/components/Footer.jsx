@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, Mail, MapPin } from "lucide-react";
+import { Facebook, Mail, MapPin } from "lucide-react";
 import { EVENT } from "@/data/rodeo";
 
 export default function Footer() {
@@ -35,10 +35,7 @@ export default function Footer() {
           <div className="space-y-4">
             <p className="font-condensed font-extrabold text-sm uppercase tracking-[0.2em] text-brand-cyan border-b-2 border-ink-800 pb-3">Follow The Mayhem</p>
             <div className="flex gap-4">
-              <a href="#" aria-label="Instagram" className="w-12 h-12 border-2 border-ink-800 flex items-center justify-center hover:border-brand-yellow hover:text-brand-yellow transition-colors clip-corner">
-                <Instagram size={20} />
-              </a>
-              <a href="#" aria-label="Facebook" className="w-12 h-12 border-2 border-ink-800 flex items-center justify-center hover:border-brand-yellow hover:text-brand-yellow transition-colors clip-corner">
+              <a href={EVENT.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" data-testid="footer-facebook" className="w-12 h-12 border-2 border-ink-800 flex items-center justify-center hover:border-brand-yellow hover:text-brand-yellow transition-colors clip-corner">
                 <Facebook size={20} />
               </a>
             </div>

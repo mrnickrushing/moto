@@ -8,6 +8,7 @@ export const EVENT = {
   price: 100,
   email: "MotoMayhemRodeo@yahoo.com",
   regDeadline: "July 13, 2026",
+  facebook: "https://www.facebook.com/profile.php?id=61590379212637",
 };
 
 export const SCHEDULE = [
