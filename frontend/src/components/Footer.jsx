@@ -12,7 +12,7 @@ export default function Footer() {
             <h3 className="font-display text-5xl sm:text-7xl uppercase leading-[0.82] hero-title -rotate-1">
               <span className="text-brand-yellow block">MOTO</span>
               <span className="text-white block ml-6">MAYHEM</span>
-              <span className="text-brand-pink block">RODEO</span>
+              <span className="text-brand-cyan block">RODEO</span>
             </h3>
             <p className="font-brush text-2xl text-brand-cyan mt-6 -rotate-2">
               {EVENT.tagline}

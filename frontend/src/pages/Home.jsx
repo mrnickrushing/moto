@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Shirt,
   Trophy,
+  ZoomIn,
   Zap,
 } from "lucide-react";
 import { Reveal } from "@/components/motion";
@@ -18,6 +19,7 @@ import Countdown from "@/components/Countdown";
 import SectionMarquee from "@/components/SectionMarquee";
 import Memorial from "@/components/Memorial";
 import SponsorLogo from "@/components/SponsorLogo";
+import FlyerLightbox from "@/components/FlyerLightbox";
 import { EVENT, EVENTS, IMAGES, SPONSORS, FLYERS, accentClass } from "@/data/rodeo";
 
 const RACE_FACTS = [
@@ -56,6 +58,7 @@ export default function Home() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
   const imageScale = useTransform(scrollYProgress, [0, 1], [1.02, 1.12]);
+  const [flyerIndex, setFlyerIndex] = useState(null);
 
   return (
     <div data-testid="home-page" className="bg-ink-950 overflow-hidden">
@@ -323,9 +326,19 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6">
             {FLYERS.map((flyer, i) => (
               <Reveal key={flyer} delay={i * 0.05}>
-                <div className={`border-4 overflow-hidden group aspect-[3/4] bg-black poster-shadow-${i % 2 ? "cyan" : "pink"} ${i % 2 ? "rotate-2 border-brand-cyan" : "-rotate-2 border-brand-pink"}`}>
+                <button
+                  type="button"
+                  onClick={() => setFlyerIndex(i)}
+                  aria-label={`View MOTO Mayhem event flyer ${i + 1} full size`}
+                  className={`relative block w-full text-left border-4 overflow-hidden group aspect-[3/4] bg-black poster-shadow-${i % 2 ? "cyan" : "pink"} ${i % 2 ? "rotate-2 border-brand-cyan" : "-rotate-2 border-brand-pink"}`}
+                >
                   <img src={flyer} alt={`MOTO Mayhem event flyer ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                </div>
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/55 transition-colors">
+                    <span className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity font-condensed font-extrabold uppercase tracking-[0.14em] text-white text-xs sm:text-sm">
+                      <ZoomIn size={18} className="text-brand-yellow" /> View Full Size
+                    </span>
+                  </span>
+                </button>
               </Reveal>
             ))}
           </div>
@@ -381,6 +394,13 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
+
+      <FlyerLightbox
+        flyers={FLYERS}
+        index={flyerIndex}
+        onClose={() => setFlyerIndex(null)}
+        onChange={setFlyerIndex}
+      />
     </div>
   );
 }
