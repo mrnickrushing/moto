@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, UserPlus, Trash2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, KeyRound, UserPlus, Trash2, ShieldCheck, Mail, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import api, { formatApiErrorDetail } from "@/lib/api";
 
@@ -74,14 +74,15 @@ function ChangePassword() {
   );
 }
 
-const emptyAdmin = { name: "", email: "", password: "" };
+const emptyInvite = { name: "", email: "" };
 
 function AdminUsers() {
   const { user } = useAuth();
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState(emptyAdmin);
+  const [form, setForm] = useState(emptyInvite);
   const [adding, setAdding] = useState(false);
+  const [resendingId, setResendingId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -103,15 +104,11 @@ function AdminUsers() {
 
   const add = async (e) => {
     e.preventDefault();
-    if (form.password.length < MIN_PW) {
-      toast.error(`Password must be at least ${MIN_PW} characters.`);
-      return;
-    }
     setAdding(true);
     try {
       await api.post("/admin/users", form);
-      toast.success(`Added ${form.email}`);
-      setForm(emptyAdmin);
+      toast.success(`Invite sent to ${form.email}`);
+      setForm(emptyInvite);
       load();
     } catch (err) {
       toast.error(formatApiErrorDetail(err.response?.data?.detail) || err.message);
@@ -128,6 +125,18 @@ function AdminUsers() {
       load();
     } catch (err) {
       toast.error(formatApiErrorDetail(err.response?.data?.detail) || err.message);
+    }
+  };
+
+  const resend = async (a) => {
+    setResendingId(a.id);
+    try {
+      await api.post(`/admin/users/${a.id}/resend-invite`);
+      toast.success(`Invite resent to ${a.email}`);
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err.response?.data?.detail) || err.message);
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -149,12 +158,14 @@ function AdminUsers() {
               <tr className="bg-ink-900 font-mono uppercase text-[10px] tracking-[0.2em] text-zinc-500">
                 <th className="p-4">Name</th>
                 <th className="p-4">Email</th>
+                <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {admins.map((a) => {
                 const isSelf = a.email?.toLowerCase() === currentEmail;
+                const pending = a.status === "pending";
                 return (
                   <tr key={a.id} data-testid={`admin-row-${a.id}`} className="border-t border-ink-800 align-middle">
                     <td className="p-4 font-bold text-white">
@@ -162,16 +173,40 @@ function AdminUsers() {
                       {isSelf && <span className="ml-2 font-mono text-[10px] uppercase tracking-widest text-brand-yellow">You</span>}
                     </td>
                     <td className="p-4 text-sm text-zinc-400 break-all">{a.email}</td>
+                    <td className="p-4">
+                      {pending ? (
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-brand-pink border border-brand-pink/50 px-2 py-1">
+                          <Clock size={11} /> Invited
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-brand-cyan border border-brand-cyan/50 px-2 py-1">
+                          <ShieldCheck size={11} /> Active
+                        </span>
+                      )}
+                    </td>
                     <td className="p-4 text-right">
-                      <button
-                        data-testid={`remove-admin-${a.id}`}
-                        onClick={() => remove(a)}
-                        disabled={isSelf}
-                        title={isSelf ? "You can't remove your own account" : "Remove admin"}
-                        className="w-9 h-9 inline-flex items-center justify-center border-2 border-ink-800 hover:border-brand-pink hover:text-brand-pink transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-ink-800 disabled:hover:text-current"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        {pending && (
+                          <button
+                            data-testid={`resend-invite-${a.id}`}
+                            onClick={() => resend(a)}
+                            disabled={resendingId === a.id}
+                            title="Resend invite email"
+                            className="w-9 h-9 inline-flex items-center justify-center border-2 border-ink-800 hover:border-brand-cyan hover:text-brand-cyan transition-colors disabled:opacity-30"
+                          >
+                            <Mail size={16} />
+                          </button>
+                        )}
+                        <button
+                          data-testid={`remove-admin-${a.id}`}
+                          onClick={() => remove(a)}
+                          disabled={isSelf}
+                          title={isSelf ? "You can't remove your own account" : pending ? "Revoke invite" : "Remove admin"}
+                          className="w-9 h-9 inline-flex items-center justify-center border-2 border-ink-800 hover:border-brand-pink hover:text-brand-pink transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-ink-800 disabled:hover:text-current"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -183,7 +218,7 @@ function AdminUsers() {
 
       <div className="flex items-center gap-3 mb-4">
         <UserPlus className="text-brand-pink" size={18} />
-        <h3 className="font-mono uppercase text-xs tracking-widest text-zinc-300">Add New Admin</h3>
+        <h3 className="font-mono uppercase text-xs tracking-widest text-zinc-300">Invite New Admin</h3>
       </div>
       <form onSubmit={add} className="grid sm:grid-cols-2 gap-5 max-w-2xl" data-testid="add-admin-form">
         <div>
@@ -195,15 +230,13 @@ function AdminUsers() {
           <input id="new_admin_email" data-testid="new-admin-email" type="email" autoComplete="off" required value={form.email} onChange={set("email")} className={field} placeholder="name@email.com" />
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor="new_admin_password" className={labelCls}>Temporary Password</label>
-          <input id="new_admin_password" data-testid="new-admin-password" type="password" autoComplete="new-password" required minLength={MIN_PW} value={form.password} onChange={set("password")} className={field} placeholder={`At least ${MIN_PW} characters`} />
-          <p className="font-mono text-[11px] text-zinc-500 mt-2">
-            Share this with the new admin — they can change it here after signing in.
+          <p className="font-mono text-[11px] text-zinc-500">
+            They'll get an email with an Accept Invite button to set their own password and sign in.
           </p>
         </div>
         <div className="sm:col-span-2">
           <button type="submit" data-testid="add-admin-submit" disabled={adding} className={btn}>
-            {adding ? "Adding…" : "Add Admin"}
+            {adding ? "Sending…" : "Send Invite"}
           </button>
         </div>
       </form>

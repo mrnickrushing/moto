@@ -350,3 +350,22 @@ def sponsor_organizer_email(inq: dict) -> tuple[str, str]:
     """
     subject = f"New sponsor inquiry — {_subject(inq.get('business_name', 'business'))}"
     return subject, layout("New sponsor inquiry.", _CYAN, "New Sponsor Inquiry", body)
+
+
+# ---- Admin invites ----------------------------------------------------------
+def admin_invite_email(
+    name: str, accept_url: str, invited_by: str, expires_hours: int
+) -> tuple[str, str]:
+    days = max(1, expires_hours // 24)
+    inviter = invited_by or "An admin"
+    body = f"""
+      <p style="margin:0 0 16px 0;">Hey {_esc(name)}, {_esc(inviter)} added you as an admin
+      for {EVENT_NAME}. Accept your invite and set a password to get into the admin dashboard.</p>
+      <p style="margin:0 0 22px 0;color:{_MUTED};">This link expires in {days} day{'s' if days != 1 else ''}
+      and only works once. If you weren't expecting this, you can ignore this email.</p>
+      {_button(accept_url, "Accept Invite")}
+    """
+    subject = f"You've been invited to administer {EVENT_NAME}"
+    return subject, layout(
+        "You've been invited as a MOTO Mayhem Rodeo admin.", _CYAN, "You're Invited", body
+    )

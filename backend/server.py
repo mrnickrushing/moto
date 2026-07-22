@@ -1,5 +1,7 @@
+import hashlib
 import logging
 import os
+import secrets
 from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 from typing import List, Optional, Annotated, Any, Literal
@@ -181,6 +183,20 @@ def get_jwt_secret() -> str:
     return os.environ["JWT_SECRET"]
 
 
+INVITE_TOKEN_EXPIRY_HOURS = 168  # 7 days
+
+
+def hash_invite_token(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+
+def generate_invite_token() -> tuple[str, str, datetime]:
+    """Returns (raw_token_for_the_email_link, hash_stored_in_mongo, expires_at)."""
+    raw_token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=INVITE_TOKEN_EXPIRY_HOURS)
+    return raw_token, hash_invite_token(raw_token), expires_at
+
+
 def create_access_token(user_id: str, email: str) -> str:
     now = datetime.now(timezone.utc)
     payload = {
@@ -283,9 +299,12 @@ class ChangePasswordRequest(ApiModel):
     new_password: StrongPasswordText
 
 
-class AdminUserCreate(ApiModel):
+class AdminInviteCreate(ApiModel):
     email: EmailStr
     name: NameText
+
+
+class AdminInviteAccept(ApiModel):
     password: StrongPasswordText
 
 
@@ -393,6 +412,7 @@ class RegistrationUpdate(ApiModel):
 
 login_limiter = RateLimiter(RateLimit(5, 300), RateLimit(20, 3600))
 admin_account_limiter = RateLimiter(RateLimit(10, 300), RateLimit(30, 3600))
+invite_limiter = RateLimiter(RateLimit(20, 300), RateLimit(60, 3600))
 registration_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 contact_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 sponsor_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
@@ -417,6 +437,11 @@ async def login(
 ):
     email = body.email.lower()
     user = await db.users.find_one({"email": email})
+    if user and user.get("role") == "admin" and user.get("status") == "pending":
+        raise HTTPException(
+            status_code=403,
+            detail="Accept your invite email before signing in.",
+        )
     password_hash = (
         user.get("password_hash", DUMMY_PASSWORD_HASH) if user else DUMMY_PASSWORD_HASH
     )
@@ -484,6 +509,73 @@ async def change_password(
     access = create_access_token(str(object_id), user["email"])
     set_auth_cookie(response, access)
     return {"message": "Password updated"}
+
+
+async def _find_pending_invite(raw_token: str) -> dict:
+    """Looks up a pending admin invite by raw token, or raises 404.
+
+    A single generic error is used for "no such token" and "expired" so an
+    attacker probing tokens can't distinguish the two.
+    """
+    token_hash = hash_invite_token(raw_token)
+    user = await db.users.find_one(
+        {"invite_token_hash": token_hash, "status": "pending"}
+    )
+    invite_error = HTTPException(status_code=404, detail="Invalid or expired invite link")
+    if not user:
+        raise invite_error
+    expires_at = user.get("invite_expires_at")
+    if not expires_at or datetime.fromisoformat(expires_at) < datetime.now(timezone.utc):
+        raise invite_error
+    return user
+
+
+@api_router.get("/auth/invite/{token}")
+async def get_invite(token: str, _rate_limit: None = Depends(invite_limiter)):
+    user = await _find_pending_invite(token)
+    return {"name": user.get("name"), "email": user.get("email")}
+
+
+@api_router.post("/auth/invite/{token}/accept")
+async def accept_invite(
+    token: str,
+    body: AdminInviteAccept,
+    response: Response,
+    _rate_limit: None = Depends(invite_limiter),
+):
+    user = await _find_pending_invite(token)
+    object_id = user["_id"]
+    await db.users.update_one(
+        {"_id": object_id},
+        {
+            "$set": {
+                "password_hash": hash_password(body.password),
+                "status": "active",
+                "password_self_managed": True,
+                "password_updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+            "$unset": {"invite_token_hash": "", "invite_expires_at": ""},
+        },
+    )
+    access = create_access_token(str(object_id), user["email"])
+    set_auth_cookie(response, access)
+    return {
+        "id": str(object_id),
+        "email": user["email"],
+        "name": user.get("name", "Admin"),
+        "role": "admin",
+    }
+
+
+async def _send_invite_email(email: str, name: str, invited_by: str, raw_token: str) -> None:
+    accept_url = f"{emailer.site_url()}/admin/accept-invite?token={raw_token}"
+    try:
+        subject, html = emailer.admin_invite_email(
+            name, accept_url, invited_by, INVITE_TOKEN_EXPIRY_HOURS
+        )
+        await emailer.send_email(email, subject, html, reply_to=emailer.organizer_email())
+    except Exception:
+        logger.exception("Failed to build/send admin invite email")
 
 
 async def _send_registration_emails(reg: dict) -> None:
@@ -788,6 +880,8 @@ def _clean_user(doc: dict) -> dict:
         "email": doc.get("email"),
         "name": doc.get("name", "Admin"),
         "role": doc.get("role"),
+        # Admins created before invites existed have no status field; treat as active.
+        "status": doc.get("status", "active"),
         "created_at": doc.get("created_at"),
     }
 
@@ -799,18 +893,22 @@ async def admin_list_users(admin: dict = Depends(get_current_admin)):
 
 
 @api_router.post("/admin/users", status_code=201)
-async def admin_create_user(
-    body: AdminUserCreate,
+async def admin_invite_user(
+    body: AdminInviteCreate,
+    background: BackgroundTasks,
     admin: dict = Depends(get_current_admin),
     _rate_limit: None = Depends(admin_account_limiter),
 ):
+    email = body.email.lower()
+    raw_token, token_hash, expires_at = generate_invite_token()
     doc = {
-        "email": body.email.lower(),
-        "password_hash": hash_password(body.password),
+        "email": email,
         "name": body.name,
         "role": "admin",
-        # Created in-app, so seed_admin's ADMIN_PASSWORD sync never touches it.
-        "password_self_managed": True,
+        "status": "pending",
+        "invite_token_hash": token_hash,
+        "invite_expires_at": expires_at.isoformat(),
+        "invited_by": admin.get("email"),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     try:
@@ -820,7 +918,32 @@ async def admin_create_user(
             status_code=409, detail="An admin with that email already exists"
         )
     doc["_id"] = result.inserted_id
+    background.add_task(_send_invite_email, email, body.name, admin.get("email"), raw_token)
     return _clean_user(doc)
+
+
+@api_router.post("/admin/users/{user_id}/resend-invite")
+async def admin_resend_invite(
+    user_id: str,
+    background: BackgroundTasks,
+    admin: dict = Depends(get_current_admin),
+    _rate_limit: None = Depends(admin_account_limiter),
+):
+    object_id = parse_object_id(user_id, detail="Invalid user identifier")
+    user = await db.users.find_one({"_id": object_id, "role": "admin"})
+    if not user:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    if user.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="That admin has already accepted their invite")
+    raw_token, token_hash, expires_at = generate_invite_token()
+    await db.users.update_one(
+        {"_id": object_id},
+        {"$set": {"invite_token_hash": token_hash, "invite_expires_at": expires_at.isoformat()}},
+    )
+    background.add_task(
+        _send_invite_email, user["email"], user.get("name", "Admin"), admin.get("email"), raw_token
+    )
+    return {"message": "Invite resent"}
 
 
 @api_router.delete("/admin/users/{user_id}")
@@ -828,7 +951,11 @@ async def admin_delete_user(user_id: str, admin: dict = Depends(get_current_admi
     object_id = parse_object_id(user_id, detail="Invalid user identifier")
     if str(object_id) == str(admin["_id"]):
         raise HTTPException(status_code=400, detail="You cannot remove your own account")
-    if await db.users.count_documents({"role": "admin"}) <= 1:
+    active_admins = await db.users.count_documents(
+        {"role": "admin", "status": {"$ne": "pending"}}
+    )
+    target = await db.users.find_one({"_id": object_id, "role": "admin"})
+    if target and target.get("status", "active") != "pending" and active_admins <= 1:
         raise HTTPException(status_code=400, detail="Cannot remove the last admin")
     result = await db.users.delete_one({"_id": object_id, "role": "admin"})
     if result.deleted_count == 0:
@@ -873,6 +1000,7 @@ async def seed_admin():
                 "password_hash": hash_password(admin_password),
                 "name": "Rodeo Admin",
                 "role": "admin",
+                "status": "active",
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
         )
