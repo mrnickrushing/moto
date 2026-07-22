@@ -21,6 +21,7 @@ import Memorial from "@/components/Memorial";
 import SponsorLogo from "@/components/SponsorLogo";
 import FlyerLightbox from "@/components/FlyerLightbox";
 import HypeReel from "@/components/HypeReel";
+import NotifyNextYear from "@/components/NotifyNextYear";
 import { EVENT, EVENTS, IMAGES, SPONSORS, FLYERS, accentClass } from "@/data/rodeo";
 
 const RACE_FACTS = [
@@ -397,6 +398,8 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
+
+      <NotifyNextYear />
 
       <FlyerLightbox
         flyers={FLYERS}

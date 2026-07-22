@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { trackPageview } from "@/lib/analytics";
 
 import Home from "@/pages/Home";
 import EventDetails from "@/pages/EventDetails";
@@ -35,6 +36,14 @@ function ScrollToTop() {
   return null;
 }
 
+function PageviewTracker() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    trackPageview(pathname);
+  }, [pathname]);
+  return null;
+}
+
 function SmoothScroll() {
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
@@ -60,6 +69,7 @@ function App() {
         <AuthProvider>
           <SmoothScroll />
           <ScrollToTop />
+          <PageviewTracker />
           <Toaster theme="dark" position="top-right" richColors />
           <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />

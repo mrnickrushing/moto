@@ -493,6 +493,60 @@ function fmtTime(iso) {
   return isNaN(d) ? iso : d.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 }
 
+function NotifySignups() {
+  const [signups, setSignups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    api
+      .get("/admin/notify-signups")
+      .then(({ data }) => setSignups(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const copyEmails = () => {
+    navigator.clipboard?.writeText(signups.map((s) => s.email).join(", "));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <section className="border-2 border-ink-800 bg-black p-6 sm:p-8" data-testid="notify-signups-card">
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <Mail className="text-brand-cyan" size={22} />
+          <h2 className="font-display uppercase text-3xl leading-none">"Notify Me Next Year" List</h2>
+        </div>
+        {signups.length > 0 && (
+          <button
+            onClick={copyEmails}
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-300 border-2 border-ink-800 px-4 py-2.5 hover:border-brand-cyan hover:text-brand-cyan transition-colors shrink-0"
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : `Copy All (${signups.length})`}
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <p className="font-mono uppercase tracking-widest text-brand-yellow animate-pulse">Loading…</p>
+      ) : signups.length === 0 ? (
+        <p className="font-mono text-sm text-zinc-500">No signups yet.</p>
+      ) : (
+        <div className="border-2 border-ink-800 max-h-64 overflow-y-auto">
+          {signups.map((s, i) => (
+            <div key={s.email + i} className="flex items-center justify-between px-4 py-2.5 border-t border-ink-800 first:border-t-0 text-sm">
+              <span className="text-zinc-300 font-mono break-all">{s.email}</span>
+              <span className="text-zinc-600 font-mono text-xs shrink-0 ml-3">{fmtTime(s.created_at)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function AuditLog() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -568,6 +622,7 @@ export default function AdminSettings() {
           <ChangePassword />
           <TwoFactorAuth />
           <AdminUsers />
+          <NotifySignups />
           <AuditLog />
         </div>
       </main>

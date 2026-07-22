@@ -511,6 +511,15 @@ class ContactCreate(ApiModel):
     message: MessageText
 
 
+class PageviewCreate(ApiModel):
+    path: Annotated[str, StringConstraints(min_length=1, max_length=300)]
+    referrer: Annotated[str, StringConstraints(max_length=500)] = ""
+
+
+class NotifyNextYearCreate(ApiModel):
+    email: EmailStr
+
+
 SponsorTier = Literal[
     "Champion Buckle Sponsor",
     "Gold Sponsor",
@@ -543,6 +552,8 @@ mfa_verify_limiter = RateLimiter(RateLimit(8, 300), RateLimit(25, 3600))
 registration_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 contact_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 sponsor_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
+pageview_limiter = RateLimiter(RateLimit(60, 60), RateLimit(600, 3600))
+notify_limiter = RateLimiter(RateLimit(5, 600), RateLimit(20, 3600))
 checkout_limiter = RateLimiter(RateLimit(10, 600))
 payment_status_limiter = RateLimiter(RateLimit(60, 60))
 DUMMY_PASSWORD_HASH = hash_password(str(uuid4()))
@@ -998,6 +1009,93 @@ async def create_sponsor_inquiry(
     return {"message": "Thanks! We'll be in touch about backing the mayhem."}
 
 
+@api_router.post("/notify-next-year")
+async def notify_next_year(
+    body: NotifyNextYearCreate,
+    _rate_limit: None = Depends(notify_limiter),
+):
+    email = body.email.lower()
+    await db.notify_signups.update_one(
+        {"email": email},
+        {"$setOnInsert": {"email": email, "created_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"message": "You're on the list — see you next year!"}
+
+
+# ----------------------------------------------------------------------------
+# Analytics (self-hosted, cookie-free — no persistent visitor identifiers)
+# ----------------------------------------------------------------------------
+def _referrer_domain(referrer: str) -> str:
+    if not referrer:
+        return ""
+    try:
+        host = urlsplit(referrer).hostname or ""
+    except ValueError:
+        return ""
+    return host.lower()[:200]
+
+
+@api_router.post("/analytics/pageview", status_code=204)
+async def record_pageview(
+    body: PageviewCreate,
+    _rate_limit: None = Depends(pageview_limiter),
+):
+    now = datetime.now(timezone.utc)
+    path = body.path.split("?", 1)[0].split("#", 1)[0][:300] or "/"
+    await db.pageviews.insert_one(
+        {
+            "path": path,
+            "referrer_domain": _referrer_domain(body.referrer),
+            "day": now.date().isoformat(),
+            "created_at": now.isoformat(),
+        }
+    )
+
+
+@api_router.get("/admin/analytics/summary")
+async def admin_analytics_summary(
+    admin: dict = Depends(get_current_admin),
+    days: int = 30,
+):
+    days = max(1, min(days, 180))
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+    match = {"day": {"$gte": since}}
+
+    total = await db.pageviews.count_documents(match)
+
+    daily_cursor = db.pageviews.aggregate([
+        {"$match": match},
+        {"$group": {"_id": "$day", "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}},
+    ])
+    daily = [{"day": d["_id"], "count": d["count"]} async for d in daily_cursor]
+
+    top_pages_cursor = db.pageviews.aggregate([
+        {"$match": match},
+        {"$group": {"_id": "$path", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10},
+    ])
+    top_pages = [{"path": p["_id"], "count": p["count"]} async for p in top_pages_cursor]
+
+    top_referrers_cursor = db.pageviews.aggregate([
+        {"$match": {**match, "referrer_domain": {"$nin": ["", None]}}},
+        {"$group": {"_id": "$referrer_domain", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10},
+    ])
+    top_referrers = [{"domain": r["_id"], "count": r["count"]} async for r in top_referrers_cursor]
+
+    return {
+        "days": days,
+        "total_pageviews": total,
+        "daily": daily,
+        "top_pages": top_pages,
+        "top_referrers": top_referrers,
+    }
+
+
 # ----------------------------------------------------------------------------
 # Payments (Stripe)
 # ----------------------------------------------------------------------------
@@ -1163,6 +1261,12 @@ async def admin_stats(admin: dict = Depends(get_current_admin)):
         "revenue": revenue,
         "class_counts": class_counts,
     }
+
+
+@api_router.get("/admin/notify-signups")
+async def admin_list_notify_signups(admin: dict = Depends(get_current_admin)):
+    docs = await db.notify_signups.find().sort("created_at", -1).to_list(5000)
+    return [{"email": d.get("email"), "created_at": d.get("created_at")} for d in docs]
 
 
 @api_router.patch("/admin/registrations/{reg_id}")

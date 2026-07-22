@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
+
+// Lazy-loaded so recharts (and everything AdminAnalyticsTab pulls in) ships
+// as its own chunk, fetched only when an admin opens this tab — public site
+// visitors never download it.
+const AdminAnalyticsTab = lazy(() => import("./AdminAnalyticsTab"));
 
 function Stat({ icon: Icon, label, value, accent }) {
   return (
@@ -115,7 +120,7 @@ export default function AdminDashboard() {
       <main className="max-w-[1600px] mx-auto px-5 sm:px-8 py-10">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-8">
           <h1 className="font-display uppercase text-5xl sm:text-6xl leading-none">
-            {tab === "registrations" ? "Registrations" : "Sponsors"}
+            {tab === "registrations" ? "Registrations" : tab === "sponsors" ? "Sponsors" : "Analytics"}
           </h1>
           <div className="flex items-center gap-3">
             <div className="flex border-2 border-ink-800">
@@ -125,14 +130,19 @@ export default function AdminDashboard() {
               <button data-testid="tab-sponsors" onClick={() => setTab("sponsors")} className={tabBtn(tab === "sponsors")}>
                 Sponsors ({sponsors.length})
               </button>
+              <button data-testid="tab-analytics" onClick={() => setTab("analytics")} className={tabBtn(tab === "analytics")}>
+                Analytics
+              </button>
             </div>
-            <Link
-              to={`/admin/print/${tab}`}
-              data-testid="print-link"
-              className="inline-flex items-center gap-2 font-mono uppercase text-xs tracking-widest px-4 py-2 bg-brand-yellow text-black hover:bg-brand-cyan transition-colors shadow-[3px_3px_0px_#ec4899]"
-            >
-              <Printer size={16} /> Print {tab === "registrations" ? "Riders" : "Sponsors"}
-            </Link>
+            {tab !== "analytics" && (
+              <Link
+                to={`/admin/print/${tab}`}
+                data-testid="print-link"
+                className="inline-flex items-center gap-2 font-mono uppercase text-xs tracking-widest px-4 py-2 bg-brand-yellow text-black hover:bg-brand-cyan transition-colors shadow-[3px_3px_0px_#ec4899]"
+              >
+                <Printer size={16} /> Print {tab === "registrations" ? "Riders" : "Sponsors"}
+              </Link>
+            )}
           </div>
         </div>
 
@@ -146,7 +156,11 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {loading ? (
+        {tab === "analytics" ? (
+          <Suspense fallback={<p className="font-mono uppercase tracking-widest text-brand-yellow animate-pulse">Loading…</p>}>
+            <AdminAnalyticsTab />
+          </Suspense>
+        ) : loading ? (
           <p className="font-mono uppercase tracking-widest text-brand-yellow animate-pulse">Loading…</p>
         ) : tab === "registrations" ? (
           regs.length === 0 ? (
