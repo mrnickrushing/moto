@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ArrowUpRight, MapPin, Trophy, Store } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import Kicker from "@/components/Kicker";
+import SponsorLogo from "@/components/SponsorLogo";
 import { getSponsor, SPONSORS } from "@/data/rodeo";
 
 export default function SponsorDetail() {
@@ -47,15 +48,21 @@ export default function SponsorDetail() {
             <div className="grid lg:grid-cols-[auto_1fr] gap-8 lg:gap-12 items-start">
               <div
                 className={`hidden sm:flex w-40 h-40 lg:w-52 lg:h-52 shrink-0 items-center justify-center border-2 border-black shadow-[6px_6px_0_#080a09] font-display text-6xl lg:text-7xl text-black ${
-                  sponsor.accent === "cyan"
-                    ? "bg-brand-cyan"
-                    : sponsor.accent === "pink"
-                      ? "bg-brand-pink"
-                      : "bg-brand-yellow"
+                  sponsor.logo
+                    ? "bg-white"
+                    : sponsor.accent === "cyan"
+                      ? "bg-brand-cyan"
+                      : sponsor.accent === "pink"
+                        ? "bg-brand-pink"
+                        : "bg-brand-yellow"
                 }`}
                 aria-hidden="true"
               >
-                {monogram}
+                <SponsorLogo
+                  sponsor={sponsor}
+                  className="w-full h-full object-contain p-5"
+                  fallback={monogram}
+                />
               </div>
 
               <div>

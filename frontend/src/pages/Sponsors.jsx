@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Heart, ArrowRight, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import Kicker from "@/components/Kicker";
+import SponsorLogo from "@/components/SponsorLogo";
 import { SPONSORS } from "@/data/rodeo";
 
 export default function Sponsors() {
@@ -35,7 +36,11 @@ export default function Sponsors() {
               data-testid={`sponsor-card-${featured.id}`}
               className="group block border-2 border-brand-yellow bg-black p-10 sm:p-16 relative overflow-hidden hover:bg-brand-yellow/[0.04] transition-colors"
             >
-              <Heart className="text-brand-pink mb-6" size={44} />
+              <SponsorLogo
+                sponsor={featured}
+                className="h-16 sm:h-24 w-auto max-w-[280px] object-contain object-left mb-6"
+                fallback={<Heart className="text-brand-pink mb-6" size={44} />}
+              />
               <Kicker color="yellow">{featured.tier}</Kicker>
               <h2 className="font-display uppercase text-5xl sm:text-7xl leading-none group-hover:text-brand-yellow transition-colors">
                 {featured.name}
@@ -60,6 +65,7 @@ export default function Sponsors() {
                   data-testid={`sponsor-card-${s.id}`}
                   className="group bg-ink-900 border-2 border-ink-800 p-10 h-full flex flex-col hover:border-brand-cyan transition-colors"
                 >
+                  <SponsorLogo sponsor={s} className="h-12 w-auto max-w-[70%] object-contain object-left mb-5" />
                   <p className="font-display uppercase text-3xl leading-none group-hover:text-brand-cyan transition-colors">
                     {s.name}
                   </p>

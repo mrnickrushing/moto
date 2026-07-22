@@ -53,6 +53,9 @@ export const CLASSES = [
 
 export const TSHIRT_SIZES = ["YXS", "YS", "YM", "YL", "Adult S", "Adult M", "Adult L", "Adult XL"];
 
+// To add a sponsor logo: drop the image in `frontend/public/images/sponsors/`
+// and set that sponsor's `logo` to e.g. "/images/sponsors/golds-bakery.png".
+// Leave `logo` empty to keep the current text-only card.
 export const SPONSORS = [
   {
     id: "golds-bakery",
@@ -63,6 +66,7 @@ export const SPONSORS = [
     category: "Bakery",
     location: "Ione, CA",
     website: "https://www.goldsbakery.com",
+    logo: "",
     teaser: "Hometown Ione bakery putting up the 110cc Champion Buckle.",
     blurb:
       "A hometown bakery in the heart of Ione run by Ronnie Gold, turning out fresh sourdough, cinnamon rolls, cookies and seasonal treats for all of Amador County. Gold's Bakery steps up as our Champion Buckle Sponsor — putting up the buckle for the 110cc 12 & Under class champion.",
@@ -76,6 +80,7 @@ export const SPONSORS = [
     category: "Moto Shop",
     location: "",
     website: "",
+    logo: "",
     teaser: "Gold Sponsor keeping local riders geared up.",
     blurb:
       "A proud Gold Sponsor of Moto Mayhem Rodeo and a champion of local two-wheeled culture — helping keep young riders geared up and on the track.",
@@ -89,6 +94,7 @@ export const SPONSORS = [
     category: "Cycle Shop",
     location: "",
     website: "",
+    logo: "",
     teaser: "Gold Sponsor and friend of the dirt.",
     blurb:
       "Gold Sponsor and friend of the dirt. Dirt Devil Cycles backs the next generation of racers chasing mayhem and buckles.",
@@ -102,6 +108,7 @@ export const SPONSORS = [
     category: "Feed & Ranch Supply",
     location: "Ione, CA",
     website: "",
+    logo: "",
     teaser: "Amador County's local feed & ranch supply.",
     blurb:
       "Amador County's local stop for livestock feed, pet food, fencing and ranch supplies — started by longtime locals Randy & Michele Costa in 2017. A Silver Sponsor keeping the Ione riding community fueled and supported.",
@@ -115,6 +122,7 @@ export const SPONSORS = [
     category: "Café",
     location: "",
     website: "",
+    logo: "",
     teaser: "Silver Sponsor fueling riders on race day.",
     blurb:
       "Silver Sponsor serving up fuel for riders and families on race day. Grab a bite, cheer on the mayhem.",
@@ -130,6 +138,9 @@ export const IMAGES = {
   checker: "https://images.unsplash.com/photo-1703929755159-a1a8835a0536?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjaGVja2VyZWQlMjBmbGFnJTIwcmFjaW5nJTIwdGV4dHVyZXxlbnwwfHx8fDE3ODQ1NjcyNjh8MA&ixlib=rb-4.1.0&q=85",
 };
 
+// Event flyers shown in "The Poster Drop" gallery on the home page.
+// To add more: drop images in `frontend/public/images/flyers/` and add
+// their paths (e.g. "/images/flyers/2026-main.jpg") to this list.
 export const FLYERS = [
   "https://customer-assets-lqy194kg.emergentagent.net/job_649a27b5-d56a-464c-b478-87669c5cab4f/artifacts/fwizbhnn_IMG_3863.webp",
   "https://customer-assets-lqy194kg.emergentagent.net/job_649a27b5-d56a-464c-b478-87669c5cab4f/artifacts/s37ivlgo_IMG_3857.webp",
