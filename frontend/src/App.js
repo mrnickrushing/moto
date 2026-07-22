@@ -15,6 +15,8 @@ import SponsorDetail from "@/pages/SponsorDetail";
 import BecomeSponsor from "@/pages/BecomeSponsor";
 import Register from "@/pages/Register";
 import Contact from "@/pages/Contact";
+import Faq from "@/pages/Faq";
+import Privacy from "@/pages/Privacy";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminAcceptInvite from "@/pages/admin/AdminAcceptInvite";
@@ -68,6 +70,8 @@ function App() {
             <Route path="/sponsors/:id" element={<Layout><SponsorDetail /></Layout>} />
             <Route path="/register" element={<Layout><Register /></Layout>} />
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
+            <Route path="/faq" element={<Layout><Faq /></Layout>} />
+            <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
             <Route path="/payment/success" element={<Layout><PaymentSuccess /></Layout>} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/accept-invite" element={<AdminAcceptInvite />} />

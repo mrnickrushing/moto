@@ -20,6 +20,7 @@ import SectionMarquee from "@/components/SectionMarquee";
 import Memorial from "@/components/Memorial";
 import SponsorLogo from "@/components/SponsorLogo";
 import FlyerLightbox from "@/components/FlyerLightbox";
+import HypeReel from "@/components/HypeReel";
 import { EVENT, EVENTS, IMAGES, SPONSORS, FLYERS, accentClass } from "@/data/rodeo";
 
 const RACE_FACTS = [
@@ -312,6 +313,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <HypeReel />
 
       {/* FLYER WALL */}
       <section className="py-24 bg-ink-900 border-y-2 border-ink-800 poster-grid">

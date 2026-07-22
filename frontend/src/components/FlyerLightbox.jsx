@@ -2,7 +2,14 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function FlyerLightbox({ flyers, index, onClose, onChange }) {
+export default function FlyerLightbox({
+  flyers,
+  index,
+  onClose,
+  onChange,
+  altPrefix = "MOTO Mayhem event flyer",
+  ariaLabel = "Event flyer viewer",
+}) {
   const open = index !== null;
 
   useEffect(() => {
@@ -29,7 +36,7 @@ export default function FlyerLightbox({ flyers, index, onClose, onChange }) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Event flyer viewer"
+      aria-label={ariaLabel}
     >
       <button
         onClick={onClose}
@@ -41,7 +48,7 @@ export default function FlyerLightbox({ flyers, index, onClose, onChange }) {
 
       <img
         src={flyers[index]}
-        alt={`MOTO Mayhem event flyer ${index + 1}`}
+        alt={`${altPrefix} ${index + 1}`}
         role="presentation"
         onClick={(e) => e.stopPropagation()}
         className="max-h-[82vh] max-w-[92vw] object-contain border-4 border-brand-pink poster-shadow-cyan"

@@ -49,6 +49,7 @@ export default function Footer() {
           <span>© 2026 MOTO Mayhem Rodeo</span>
           <div className="flex gap-6">
             <span>Ride Hard · Cause Mayhem · Have Fun</span>
+            <Link to="/privacy" data-testid="privacy-link" className="hover:text-brand-cyan transition-colors">Privacy</Link>
             <Link to="/admin/login" data-testid="admin-link" className="hover:text-brand-cyan transition-colors">Admin</Link>
           </div>
         </div>
