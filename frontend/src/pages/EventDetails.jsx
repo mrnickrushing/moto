@@ -8,8 +8,8 @@ import FlyerLightbox from "@/components/FlyerLightbox";
 import { EVENT, SCHEDULE, IMAGES } from "@/data/rodeo";
 
 const PATTERNS = [
-  { src: "/images/patterns/barrel-single-stake-pattern.jpg", label: "Barrels & Single Stake" },
-  { src: "/images/patterns/pole-whipping-pattern.jpg", label: "Pole Whipping" },
+  { src: "/images/patterns/barrel-single-stake-pattern.webp", label: "Barrels & Single Stake" },
+  { src: "/images/patterns/pole-whipping-pattern.webp", label: "Pole Whipping" },
 ];
 
 function PageHead({ kicker, title, sub }) {

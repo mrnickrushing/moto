@@ -66,7 +66,7 @@ export const SPONSORS = [
     category: "Bakery",
     location: "Ione, CA",
     website: "https://www.goldsbakery.com",
-    logo: "/images/sponsors/golds-bakery.jpg",
+    logo: "/images/sponsors/golds-bakery.webp",
     teaser: "Hometown Ione bakery putting up the 110cc Champion Buckle.",
     blurb:
       "A hometown bakery on Main Street in Ione, baking fresh sourdough, cinnamon rolls, cookies and seasonal treats for all of Amador County. Gold's Bakery steps up as our Champion Buckle Sponsor — putting up the buckle for the 110cc 12 & Under class champion. Find them at (209) 790-9551 or goldsbakery.ioneca@gmail.com.",
@@ -80,7 +80,7 @@ export const SPONSORS = [
     category: "Livestock",
     location: "Amador County, CA",
     website: "",
-    logo: "/images/sponsors/solomon-livestock.jpg",
+    logo: "/images/sponsors/solomon-livestock.webp",
     teaser: "Backing the 50cc Ages 7–8 Championship Buckle.",
     blurb:
       "A local livestock outfit investing in the youth and moto-western community of Amador County. Solomon Livestock puts up the championship buckle for the 50cc Ages 7–8 class, giving the youngest riders something to chase.",
@@ -94,7 +94,7 @@ export const SPONSORS = [
     category: "Construction",
     location: "Amador County, CA",
     website: "",
-    logo: "/images/sponsors/milovina-construction.jpg",
+    logo: "/images/sponsors/milovina-construction.webp",
     teaser: "Building more than projects — backing the 65cc Ages 7–9 Buckle.",
     blurb:
       "A local construction outfit putting up the 65cc Ages 7–9 Champion Buckle. Milovina Construction is also behind the scenes of Moto Mayhem Rodeo itself — big projects or quality craftsmanship, they're building opportunities for our future riders.",
@@ -108,7 +108,7 @@ export const SPONSORS = [
     category: "Taxidermy",
     location: "Amador County, CA",
     website: "https://deathrattletaxidermy.com",
-    logo: "/images/sponsors/death-rattle-taxidermy.jpg",
+    logo: "/images/sponsors/death-rattle-taxidermy.webp",
     teaser: "Preserving the outdoors — backing the 65cc Ages 10–12 Buckle.",
     blurb:
       "Full-service taxidermy studio in Amador County — mounts, rugs, tanning, skull work and custom bone carving for big game, birds and fish. Death Rattle Taxidermy sponsors the 65cc Ages 10–12 Champion Buckle. Reach them at (209) 257-8170 or Info@deathrattletaxidermy.com.",
@@ -122,7 +122,7 @@ export const SPONSORS = [
     category: "Trucking & Ready Mix",
     location: "Ione, CA",
     website: "https://goldandsonstrucking.com",
-    logo: "/images/sponsors/gold-and-sons-trucking.jpg",
+    logo: "/images/sponsors/gold-and-sons-trucking.webp",
     teaser: "Hauling the loads, backing the 85cc Ages 8–10 Buckle.",
     blurb:
       "A certified Disabled Veteran Business Enterprise trucking outfit and locally owned ready-mix concrete supplier serving Ione and Amador County since 2000. Gold & Sons puts up the 85cc Ages 8–10 Champion Buckle. Trucking: (209) 274-4365 · Ready Mix: (209) 274-0150.",
@@ -136,7 +136,7 @@ export const SPONSORS = [
     category: "Auto Repair",
     location: "Ione, CA",
     website: "",
-    logo: "/images/sponsors/tommys-garage.jpg",
+    logo: "/images/sponsors/tommys-garage.webp",
     teaser: "Keeping engines strong, backing the 85cc Ages 11–12 Buckle.",
     blurb:
       "A full-service, NAPA AutoCare–affiliated repair shop at 340 Preston Ave in Ione, known for honest, thorough work at a fair price. Tommy's Garage sponsors the 85cc Ages 11–12 Champion Buckle. Call (209) 274-0605.",
@@ -150,7 +150,7 @@ export const SPONSORS = [
     category: "Barrel Racing Association",
     location: "Amador County, CA",
     website: "",
-    logo: "/images/sponsors/cheatham-equine-barrel-racing.jpg",
+    logo: "/images/sponsors/cheatham-equine-barrel-racing.webp",
     teaser: "Backing our youngest riders' 50cc Ages 4–6 Buckle.",
     blurb:
       "A local barrel racing association helping launch our youngest riders. CEBRA puts up the championship buckle for the 50cc Ages 4–6 class, giving pee-wee riders a shot at their first title.",
@@ -164,7 +164,7 @@ export const SPONSORS = [
     category: "Electrical Contractor",
     location: "Jackson, CA",
     website: "https://www.hallselectric.com",
-    logo: "/images/sponsors/halls-electric.jpg",
+    logo: "/images/sponsors/halls-electric.webp",
     teaser: "Certified Generac dealer powering up Moto Mayhem.",
     blurb:
       "Commercial and residential electrical contractor at 842 Hwy 88 in Jackson, and a certified Generac dealer for home standby and commercial generators. Run by Mike & Pam Hall. Call (209) 257-1779 or email mike@hallselectric.com.",
@@ -178,7 +178,7 @@ export const SPONSORS = [
     category: "General Engineering",
     location: "Pine Grove, CA",
     website: "",
-    logo: "/images/sponsors/n6-llc-general-engineering.jpg",
+    logo: "/images/sponsors/n6-llc-general-engineering.webp",
     teaser: "Strong foundations, Lic #1088724.",
     blurb:
       "Licensed general engineering contractor based in Pine Grove (Lic #1088724), handling everything from the ground up. N6 LLC backs Moto Mayhem Rodeo just like they build — strong foundations for the community. Call (209) 996-2073.",
@@ -192,7 +192,7 @@ export const SPONSORS = [
     category: "Restaurant",
     location: "Ione, CA",
     website: "https://donluismexicanrestaurantca.com",
-    logo: "/images/sponsors/don-luis.jpg",
+    logo: "/images/sponsors/don-luis.webp",
     teaser: "Authentic Mexican-American cuisine in Ione since 2004.",
     blurb:
       "Ione's hometown Mexican-American kitchen at 21 W Main St, serving enchiladas, tacos, chiles rellenos and carne asada since 2004. Don Luis invests right back into the community it feeds. Call (209) 437-6683.",
@@ -206,7 +206,7 @@ export const SPONSORS = [
     category: "Livestock Hauling",
     location: "Ione, CA",
     website: "",
-    logo: "/images/sponsors/rb-hauling.jpg",
+    logo: "/images/sponsors/rb-hauling.webp",
     teaser: "Dependable livestock hauling for Amador County ranchers.",
     blurb:
       "Serving Amador County's agricultural community with dependable livestock hauling and deceased livestock removal, working with local vets for same-day service. RB Hauling is proud to back the next generation of riders. Call (209) 986-2099.",
@@ -220,7 +220,7 @@ export const SPONSORS = [
     category: "Furniture & Mattress",
     location: "Jackson, CA",
     website: "https://www.dunlopfamilyfurniture.com",
-    logo: "/images/sponsors/dunlop-family-furniture.jpg",
+    logo: "/images/sponsors/dunlop-family-furniture.webp",
     teaser: "Local and affordable since 1997.",
     blurb:
       "A locally owned family furniture and mattress store serving Jackson, Ione and Sutter Creek since 1997 — quality furniture, comfortable mattresses, and real customer service. Open daily. Call (209) 223-2220.",
@@ -238,13 +238,13 @@ export const IMAGES = {
 
 // Event flyers shown in "The Poster Drop" gallery on the home page.
 // To add more: drop images in `frontend/public/images/flyers/` and add
-// their paths (e.g. "/images/flyers/2026-main.jpg") to this list.
+// their paths (e.g. "/images/flyers/2026-main.webp") to this list.
 export const FLYERS = [
-  "/images/flyers/main-event-flyer.jpg",
-  "/images/flyers/moto-mayhem-month.jpg",
-  "/images/flyers/10-days-to-go.jpg",
-  "/images/flyers/7-days-to-go.jpg",
-  "/images/flyers/5-days-to-go.jpg",
+  "/images/flyers/main-event-flyer.webp",
+  "/images/flyers/moto-mayhem-month.webp",
+  "/images/flyers/10-days-to-go.webp",
+  "/images/flyers/7-days-to-go.webp",
+  "/images/flyers/5-days-to-go.webp",
 ];
 
 export const accentClass = {
@@ -263,7 +263,7 @@ export const MEMORIAL = {
   number: "26s",
   born: "Jan 26, 1972",
   died: "Nov 20, 2022",
-  image: "/images/memorial-donny-tillery.jpg",
+  image: "/images/memorial-donny-tillery.webp",
   lines: ["Forever in our hearts.", "Forever on the track.", "Never forgotten."],
   quote: "Some ride for fun, others ride for life. You rode with your soul.",
 };

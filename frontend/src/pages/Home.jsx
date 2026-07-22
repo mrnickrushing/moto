@@ -67,7 +67,7 @@ export default function Home() {
       <section ref={heroRef} className="relative min-h-[880px] lg:min-h-[960px] flex items-center pt-28 overflow-hidden border-b-4 border-brand-cyan">
         <motion.div style={{ y: imageY, scale: imageScale }} className="absolute inset-0">
           <img
-            src="/images/moto-hero-stitch.jpg"
+            src="/images/moto-hero-stitch.webp"
             alt="Motocross rider launching over a dirt ridge"
             className="w-full h-full object-cover object-[44%_center]"
           />
